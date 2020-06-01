@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title> SBOM Demo - an online SBOM generator </title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="generator" content="SBOM-Demo 1.1 - SEI" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+    <link rel="stylesheet"
+	  href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+	  integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+	  crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+	    integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+	    crossorigin="anonymous></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+	    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+	    crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+	    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+	    crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"  async defer
+	    integrity="sha384-N8EP0Yml0jN7e0DcXlZ6rt+iqKU9Ck6f1ZQ+j2puxatnBq4k9E8Q6vqBcY34LNbn"
+	    crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="css.css">
+  </head>
+  <body>
+    <div id="scontent" class="coverpage">
+      <button class="btn text-muted text-center btn-warning float-right" type="button"
+	      onclick="$('.coverpage').hide()">Close</button>
+      <span class="float-right">&nbsp;</span>
+      <button class="btn btn-danger float-right d-none" type="button" id="vuls"
+	      onclick="vul_modal()">Vulnerabilities</button>
+      <h4>
+	<a href="javascript:void(0)" onclick="showme('#spdxcontent',0)">
+	  SPDX
+	</a>
+	<a id="dlspdx" class="dldr" alt="Download SPDX" title="Download SPDX">
+	  &darr;
+	</a>
+	 | 
+	<a href="javascript:void(0)" onclick="showme('#swidcontent',0)">
+	  SWID
+	</a>
+	<a id="dlswid" class="dldr" alt="Download SWID" title="Download SWID">
+	  &darr;
+	</a>
+	 | 
+	<a href="javascript:void(0)" onclick="showme('#cyclonedxcontent',0)">
+	  CycloneDX
+	</a>
+	<a id="dlcyclonedx" class="dldr" alt="Download CycloneDX" title="Download CycleDX">
+	  &darr;
+	</a>
+	 | 
+	<a href="javascript:void(0)"
+	   onclick="showme('#graph',1)">
+	  Graph
+	</a>
+	<a id="dlsvg" class="dldr" style="display:none"
+	   alt="Download SVG Graph" title="Download SVG Graph">
+	  &darr;
+	</a>	
+      </h4>
+      <div id="spdxcontent" class="scontent">
+      </div>
+      <div id="swidcontent" class="scontent">
+	<textarea id="swidtext">
+	</textarea>
+      </div>
+      <div id="cyclonedxcontent" class="scontent">
+	<textarea id="cyclonedxtext">
+	</textarea>
+      </div>
+      <div id="graph" class="scontent">
+      </div>     
+    </div>
+    <div class="container">
+      <form class="needs-validation" novalidate onSubmit="return false" method="POST"
+	    id="main_form">
+	<table class="table" id="main_table">
+	  <thead>
+	    <tr>
+	      <th colspan="2" class="text-center">
+		SBOM data collection with sample
+		<a href="javascript:void(0)" onclick="do_example()">Example</a>
+	      </th>
+	  </tr></thead>
+	  <tbody>
+	    <tr><td>SPDXVersion</td>
+	      <td>
+		<input class="form-control" type="text" name="SPDXVersion" placeholder="SPDX-2.1">
+	      </td>
+	    </tr>
+	    <tr><td>DataLicense</td>
+	      <td>
+		<input class="form-control" type="text" name="DataLicense" placeholder=" CC0-1.0">
+	      </td>
+	    </tr>
+	    <tr><td>SPDXID</td>
+	      <td><input class="form-control" type="text" name="SPDXID" placeholder=" SPDXRef-DOCUMENT">
+	      </td>
+	    </tr>
+	    <tr><td>DocumentName</td>
+	      <td><input class="form-control" type="text" name="DocumentName" placeholder=" ACME-INFUSION-1.0-SBOM-DRAFT">
+	      </td>
+	    </tr>
+	    <tr>
+	      <td>DocumentNamespace</td>
+	      <td><input class="form-control" type="url" name="DocumentNamespace" placeholder=" http://www.hospitalproducts.acme">
+	      </td>
+	    </tr>
+	    <tr>
+	      <td>Creator</td>
+	      <td>
+		<input class="form-control" type="text" name="Creator" placeholder="ACME-Hospital-Division()">
+	      </td>
+	    </tr>
+	    <tr><td>Created</td>
+	      <td>
+		<input class="form-control" type="datetime-local" name="Created" placeholder="2020-04-15T10:00">
+	      </td>
+	    </tr>
+	    <tr>
+	      <td>CreatorComment</td>
+	      <td>
+		<textarea class="form-control" name="CreatorComment"
+			  placeholder="Draft SCME INFUSION PoC II SBOM document in SPDX format. Unofficial content for demonstration purposes only.">
+		</textarea>
+	      </td>
+	    </tr>
+	    <tr>
+	      <td colspan="2">
+		<table class="table pcmp_table" id="PrimaryComponent">
+		  <thead>
+		    <tr class="remover">
+		      <th colspan="2" class="text-center cmp_title text-info">
+			Primary Component 
+		      </th>
+		    </tr>
+		  </thead><tbody>
+
+		    <tr>
+		      <td>Component Name:</td>
+		      <td>
+			<input class="form-control" type="text" placeholder="INFUSION"
+			       onchange="update_cmp_names(this)"
+			       name="PackageName">
+		      </td>
+		    </tr>
+		    <tr>
+		      <td>Version:</td>
+		      <td>
+			<input class="form-control" type="text" placeholder="1.0"
+			       name="PackageVersion">
+		      </td>
+		    </tr>
+		    <tr>
+		      <td>Supplier Name:</td>
+		      <td>
+			<input class="form-control" type="text" placeholder="ACME"
+			       name="SupplierName">
+		      </td>
+		    </tr>
+		    <tr>
+		      <td>Relationship:</td>
+		      <td>
+			<select class="form-control" name="Relationship" placeholder="Primary"
+				disabled="disabled">
+			  <option>Primary</option>
+			  <option>Included</option>
+			</select>
+		      </td>
+		    </tr>
+		  </tbody>
+		</table>
+	      </td>
+	    </tr>
+	    <tr class="tail">
+	      <td colspan="2">
+		<button class="btn btn-success" onclick="add_cmp()">
+		  + Add Component
+		</button>
+		<div class="float-right">
+		  <button class="btn btn-warning"
+			  onclick="document.forms[0].reset()">
+		    Reset
+		  </button>
+		  &nbsp; 
+		  <button class="btn btn-primary" onclick="generate_spdx()">
+		    Generate SPDX/SWID
+		  </button>
+		</div>
+		
+	      </td>
+	    </tr>
+	  </tbody>
+	</table>
+      </form>
+      
+    </div>
+    <div class="cmp_template">
+      <table class="table cmp_table" id="Componentd_count">
+	<thead>
+	  <tr class="remover">
+	    <th colspan="2" class="text-center cmp_title text-secondary">
+	      Component d_count
+	      <button class="btn btn-danger float-right" onclick="rm_cmp(this)"> - Remove</button>
+	    </th>
+	  </tr>
+	  <tbody>
+	    <tr>
+	      <td>Parent Component:</td>
+	      <td>
+		<select name="ParentComponent" class="form-control ParentComponent">
+		  <option value="PrimaryComponent">PrimaryComponent</option>
+		</select>
+	      </td>
+	    </tr>
+	    
+	    <tr> 
+	      <td>Component Name:</td>
+	      <td>
+		<input class="form-control" type="text" name="PackageName"
+		       onchange="update_cmp_names(this)" 
+		       placeholder="Windows Embedded Standard 7"/>
+	      </td>
+	    </tr>
+	    <tr>
+	      <td>Version:</td>
+	      <td>
+		<input class="form-control"  type="text" name="PackageVersion"
+		       placeholder="6.1.7601"/>
+	      </td>
+	    </tr>
+	    <tr>
+	      <td>Supplier Name:</td>
+	      <td>
+		<input class="form-control"  type="text" placeholder="Microsoft"
+		       name="SupplierName"/>
+	      </td>
+	    </tr>	
+	    <tr>
+	      <td>Relationship:</td>
+	      <td>
+		<select class="form-control"  name="Relationship" placeholder="Included"
+			disabled="disabled">
+		  <option>Included</option>
+		  <option>Primary</option>
+		</select>
+	      </td>
+	    </tr>
+      </table>
+    </div>
+    <div id="spdx" class="spdx">
+      <div class="head">
+	## Document Header
+	SPDXVersion: $SPDXVersion
+	DataLicense: $DataLicense
+	SPDXID: $SPDXID
+	DocumentName: $DocumentName
+	DocumentNamespace: $DocumentNamespace
+
+	## *** Framing Baseline Element
+	## 2.2.1 Author Name
+	## Creator: Organization: Organization-Division()
+	## Created should be in ISO 8601 standard, UTC format: YYYY-MM-DDThh:mm:ssZ
+	## Created: 2019-12-25T11:00:00Z
+	Creator: Organization: $Creator
+	Created: $Created
+	CreatorComment: &lt;text&gt;$CreatorComment&lt;/text&gt;
+      </div>
+      <div class="pcomponent">
+
+	## Packages
+	## *** Framing Component Baseline Elements
+	##
+	## 2.2.3 Component Name
+	## PackageName: &lt;Component Name&gt;
+	##
+	## 2.2.6 Unique Identifier
+	## SPDXID: "SPDXRef-" followed by letters, numbers, ".", and/or "-".
+	## == Recommendation is to use subset of package name for readability.
+	## SPDXID: SPDXRef-&lt;PackageName&gt;
+	## == SPDX-2.1 Does not support the purl syntax, so it is included as a Package Comment
+	## PackageComment: &lt;text&gt; PURL is pkg:supplier/&lt;PackageSupplier&gt;/&lt;PackageName&gt;@&lt;PackageVersion&gt; &lt;/text&gt;
+	##    Use purl to construct an identifier
+	##    scheme:type:namespace/name@version?qualifiers#subpath
+	##    scheme: (pkg)
+	##  type: (supplier)
+	##  namespace: PackageSupplier
+	##  name: PackageName
+	##  version: PackageVersion
+	##  qualifiers#subpath: (skip)
+	##
+	##  2.2.2 Supplier Name
+	## PackageSupplier: &lt;Supplier Name&gt;
+	##
+	##  2.2.4 Version String
+	## PackageVersion: &lt;Version String&gt;
+	##
+	## 2.2.7 Relationship
+	## == Primary Component Relationship (Self)
+	## Relationship: $SPDXID DESCRIBES SPDXRef-$PackageName
+	## == Included Component Relationship (Included in)
+	## Relationship: &lt;SPDXRef-1&gt; CONTAINS &lt;SPDXRef-2 style&gt;
+	##
+	## Note: The following fields are needed to have a valid document that the tools can process
+	##       If you know the values, fill them in, otherwise feel free to use these defaults
+	## PackageDownloadLocation: NOASSERTION
+	## FilesAnalyzed: false
+	## PackageLicenseConcluded: NOASSERTION
+	## PackageLicenseDeclared: NOASSERTION
+	## PackageCopyrightText: NOASSERTION
+
+
+	##
+	## ***Framing Baseline
+	## 2.4 Primary Component (described by the SBOM)
+	##
+	PackageName: $PackageName
+	SPDXID: SPDXRef-$EscPackageName
+	PackageComment: &lt;text&gt;PURL is pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
+	PackageVersion: $PackageVersion
+	PackageSupplier: Organization: $SupplierName
+	Relationship: $SPDXID DESCRIBES SPDXRef-$EscPackageName
+	PackageDownloadLocation: NOASSERTION
+	FilesAnalyzed: false
+	PackageLicenseConcluded: NOASSERTION
+	PackageLicenseDeclared: NOASSERTION
+	PackageCopyrightText: NOASSERTION
+      </div>
+      <div class="subcomponent">
+
+	##
+	## ***Framing Baseline
+	## 2.4 First-Level Components
+	##
+	PackageName: $PackageName
+	SPDXID: SPDXRef-$EscPackageName
+	PackageComment:  &lt;text&gt;PURL is pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
+	PackageVersion: $PackageVersion
+	PackageSupplier: Organization: $SupplierName
+	Relationship: SPDXRef-$PrimaryPackageName CONTAINS SPDXRef-$EscPackageName
+	PackageDownloadLocation: NOASSERTION
+	FilesAnalyzed: false
+	PackageLicenseConcluded: NOASSERTION
+	PackageLicenseDeclared: NOASSERTION
+	PackageCopyrightText: NOASSERTION
+      </div>
+      
+    </div>
+    <div id="swid">
+      <textarea class="pcmp">
+	  <SoftwareIdentity name="$PackageName"
+			    tagId="pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion"
+			    version="$PackageVersion">
+	    <Entity name="$SupplierName" role="softwareCreator"/>
+	  </SoftwareIdentity>
+      </textarea>
+      <textarea class="cmp">
+	<SoftwareIdentity name="$PackageName"
+			  tagId="pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion"
+			  version="$PackageVersion">
+	  <Entity name="$SupplierName" role="softwareCreator"/>
+	</SoftwareIdentity>
+      </textarea>
+    </div>
+    <div id="cyclonedx">
+      <textarea class="cyclonedxcmp">
+	<component type="library">
+	  <description>
+	    $PackageName
+	  </description>
+	  <name>$PackageName</name>
+	  <purl>pkg:hex/$UrlPackageName@$PackageVersion</purl>
+	  <supplier>$SupplierName</supplier>
+	  <manufacture>$SupplierName</manufacture>
+	  <version>$PackageVersion</version>
+	</component>
+      </textarea>
+    </div>
+    <div id="mpopup"
+	 style="display:none;position:absolute;z-index:200;background:rgba(70,130,180,0.6)">
+      <h5>Product</h5>
+      <p>Details</p>
+    </div>
+    <div class="modal" tabindex="-1" role="dialog" id="vul_table">
+      <div class="modal-dialog" role="document">
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <h5 class="modal-title">Simulate Vulnerabilities by Component</h5>
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	      <span aria-hidden="true">&times;</span>
+	    </button>
+	  </div>
+	  <div class="modal-body">
+	    <div class="row" style="margin:-10px 0px 2px 0px">
+	      <div class="float-right" style="width: 100%;">
+		Vul Propogation ratio: 
+		<input type="number" id="pratio" value="1" class="form-control"
+		       placeholder="Propogation ratio" 
+		       style="width:6ch; display:inline" step="0.1"/>
+		<span class="text-success h4 float-right" onclick="add_vul()">
+		  &CirclePlus;</span>
+	      </div>
+	    </div>
+	    <div class="vul_template d-none">
+	      <div style="display:inline">
+		<select name="Vulnerable Component" class="form-control vul_part">
+		  <option value="">Select Component</option>
+		</select>
+	      </div>
+	      <div style="display:inline">
+		<input type="text" name="CVE number" class="form-control cve" 
+		       placeholder="CVE-####-####" onchange="cve_check(this)">
+	      </div>
+	      <div style="display:inline">
+		<input type="number" placeholder="CVSS score" 
+		       step="0.01" name="CVSS Score" class="form-control cvss_score">
+	      </div>
+	      <button class="btn btn-danger float-right" 
+		      onclick="remove_vul(this)">&CircleMinus;</button>
+	    </div>
+	  </div>
+	  <div class="modal-footer">
+	    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+
+	    <button type="button" class="btn btn-primary" onclick="simulate_vuls()">
+	      Simulate</button>
+	  </div>
+	</div>
+      </div>
+    </div>
+    
+    <script src="script.js"></script>
+  </body>
+</html>
+
