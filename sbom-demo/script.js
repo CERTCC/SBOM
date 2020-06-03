@@ -101,8 +101,10 @@ function verify_inputs() {
     var inputs=$('#main_table :input').not('button')
     for (var i=0; i< inputs.length; i++) {
 	if(!$(inputs[i]).val()) {
-	    add_invalid_feedback(inputs[i],"")
-	    return false
+	    if(!$(inputs[i]).hasClass("not_required")) {
+	       add_invalid_feedback(inputs[i],"")
+		return false
+	    }
 	}
     }
     return true
@@ -184,9 +186,9 @@ function generate_spdx() {
     //alert(spdx)
     $('#swidtext').val(swid)
     $('#cyclonedxtext').val(cyclonedx)
-    $('#spdxcontent').html('<pre>'+spdx+'</pre>').show()
+    $('#spdxcontent').html('<pre id="pspdx">'+spdx+'</pre>').show()
     $('#scontent').show()
-    var spdxdl = spdx.replace(/\n\s+/g,'\n')
+    var spdxdl = $('pre#pspdx').text().replace(/\n\s+/g,'\n')
     /* File Prefix */
     var fPfx = $('input[name="DocumentName"]').val().replace(/[^0-9A-Z]/gi,'-')+'-'
     $('#dlspdx').attr('download','SPDX-'+fPfx+timefile()+'.spdx')

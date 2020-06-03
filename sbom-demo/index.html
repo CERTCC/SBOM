@@ -22,7 +22,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"  async defer
 	    integrity="sha384-N8EP0Yml0jN7e0DcXlZ6rt+iqKU9Ck6f1ZQ+j2puxatnBq4k9E8Q6vqBcY34LNbn"
 	    crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="css.css">
+    <link rel="stylesheet" href="css.css?v=1591150746">
   </head>
   <body>
     <div id="scontent" class="coverpage">
@@ -84,30 +84,42 @@
 	      <th colspan="2" class="text-center">
 		SBOM data collection with sample
 		<a href="javascript:void(0)" onclick="do_example()">Example</a>
+		<br />
+		<small>
+		(generates a SPDX-2.1 under CC0-1.0 license with default
+		SPDXID of SPDXRef-DOCUMENT)
+		</small>
 	      </th>
 	  </tr></thead>
 	  <tbody>
-	    <tr><td>SPDXVersion</td>
+	    <tr style="display:none">
+	      <td>SPDXVersion</td>
 	      <td>
-		<input class="form-control" type="text" name="SPDXVersion" placeholder="SPDX-2.1">
+		<input class="form-control" type="text" name="SPDXVersion" value="SPDX-2.1"
+		       value="SPDX-2.1"  placeholder="SPDX-2.1">
 	      </td>
 	    </tr>
-	    <tr><td>DataLicense</td>
+	    <tr style="display:none">
+	      <td>DataLicense</td>
 	      <td>
-		<input class="form-control" type="text" name="DataLicense" placeholder=" CC0-1.0">
+		<input class="form-control" type="text" name="DataLicense" placeholder="CC0-1.0"
+		       value="CC0-1.0">
 	      </td>
 	    </tr>
-	    <tr><td>SPDXID</td>
-	      <td><input class="form-control" type="text" name="SPDXID" placeholder=" SPDXRef-DOCUMENT">
+	    <tr style="display:none">
+	      <td>SPDXID</td>
+	      <td><input class="form-control" type="text" name="SPDXID" 
+			 value="SPDXRef-DOCUMENT"
+			 placeholder="SPDXRef-DOCUMENT">
 	      </td>
 	    </tr>
 	    <tr><td>DocumentName</td>
-	      <td><input class="form-control" type="text" name="DocumentName" placeholder=" ACME-INFUSION-1.0-SBOM-DRAFT">
+	      <td><input class="form-control" type="text" name="DocumentName" placeholder="ACME-INFUSION-1.0-SBOM-DRAFT">
 	      </td>
 	    </tr>
 	    <tr>
 	      <td>DocumentNamespace</td>
-	      <td><input class="form-control" type="url" name="DocumentNamespace" placeholder=" http://www.hospitalproducts.acme">
+	      <td><input class="form-control" type="url" name="DocumentNamespace" placeholder="http://www.hospitalproducts.acme">
 	      </td>
 	    </tr>
 	    <tr>
@@ -118,15 +130,15 @@
 	    </tr>
 	    <tr><td>Created</td>
 	      <td>
-		<input class="form-control" type="datetime-local" name="Created" placeholder="2020-04-15T10:00">
+		<input class="form-control" type="datetime-local" name="Created" 
+		       placeholder="2020-04-15T10:00">
 	      </td>
 	    </tr>
 	    <tr>
 	      <td>CreatorComment</td>
 	      <td>
-		<textarea class="form-control" name="CreatorComment"
-			  placeholder="Draft SCME INFUSION PoC II SBOM document in SPDX format. Unofficial content for demonstration purposes only.">
-		</textarea>
+		<textarea class="form-control not_required" name="CreatorComment"
+			  placeholder="Draft SCME INFUSION PoC II SBOM document in SPDX format. Unofficial content for demonstration purposes only."> </textarea>
 	      </td>
 	    </tr>
 	    <tr>
@@ -183,7 +195,7 @@
 		</button>
 		<div class="float-right">
 		  <button class="btn btn-warning"
-			  onclick="document.forms[0].reset()">
+			  onclick="location.reload()">
 		    Reset
 		  </button>
 		  &nbsp; 
@@ -433,7 +445,7 @@
       </div>
     </div>
     
-    <script src="script.js"></script>
+    <script src="script.js?v=1591150746"></script>
   </body>
 </html>
 
