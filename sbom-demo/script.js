@@ -279,27 +279,37 @@ function generate_spdx() {
 
     hkey['EscPackageName'] = hkey['PackageName'].replace(/[^A-Z0-9\.\-]/gi,'-')
     hkey['UrlPackageName'] = encodeURIComponent(hkey['PackageName'])
+    /* Used in CycloneDX only */
+    hkey['BomRef'] = generate_uuid()
+    hkey['PrimaryBomRef'] = hkey['BomRef']
+    $('.pcmp_table').data('BomRef', hkey['BomRef'])
     var PrimaryPackageName = hkey['EscPackageName']
     var swidcmp = $('#swid .cmp').val()
 	.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
-    var cyclonedxcmp = $('#cyclonedx .cyclonedxcmp').val()
+    var cyclonedxcmp = $('#cyclonedx .cyclonedxpcmp').val()
 	.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
     alltreeData.push({props:JSON.stringify(hkey),
 		      name: hkey['PackageName'],
 		      parent: null,
 		      children:[]})
     swid += swidcmp
-    cyclonedx += cyclonedxcmp
+    cyclonedx += cyclonedxcmp 
     spdx += tpcmp.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
     //console.log(spdx)
     var cmps = $('#main_table .cmp_table')
     var tpcmps = ""
     var swidpcmps = ""
     var cyclonedxpcmps = ""
+    var cyclonedxdeps = ""    
     for(var i=0; i< cmps.length; i++) {
 	hkey = {}
 	hkey['PrimaryPackageName'] = PrimaryPackageName
 	var parent = PrimaryPackageName
+	hkey['BomRef'] = generate_uuid()
+	hkey['ChildBomRef'] = hkey['BomRef']
+	hkey['ParentBomRef'] = hkey['PrimaryBomRef']
+	$(cmps[i]).data('BomRef', hkey['BomRef'])
+	hkey['ParentBomRef'] = generate_uuid()	
 	hinputs = $(cmps[i]).find(':input').not('button')
 	if($(cmps[i]).find(".ParentComponent").val() != "PrimaryComponent") {
 	    /* This is a child relationship of level 2 or more */
@@ -308,7 +318,10 @@ function generate_spdx() {
 	    parent = parentPackageName
 	    hkey['PrimaryPackageName'] = parentPackageName.replace(/[^A-Z0-9\.\-]/gi,'-')
 	    var index = parseInt(parentTable.replace('Component',''))-1
+	    hkey['ParentBomRef'] = $('#'+parentTable).data('BomRef')
 	}
+	cyclonedxdeps += $('.cyclonedxdeps').val().replace('$ChildBomRef',hkey['ChildBomRef'])
+	    .replace('$ParentBomRef',hkey['ParentBomRef'])
 	hinputs.map(i => hkey[hinputs[i].name] = $('<div>').text(hinputs[i].value).html())
 	alltreeData.push({props: JSON.stringify(hkey),name: hkey['PackageName'],parent: parent,
 			  children:[]})	
@@ -324,7 +337,9 @@ function generate_spdx() {
     }
     spdx += tpcmps
     swid += swidpcmps+swidTail
-    cyclonedx += cyclonedxpcmps + cyclonedxTail
+    cyclonedx +=  '<components>\n' + cyclonedxpcmps + '</components>\n'+
+	'<dependencies>\n'+ cyclonedxdeps + '</dependencies>\n'+
+	cyclonedxTail
     //alert(spdx)
     $('#swidtext').val(swid)
     $('#cyclonedxtext').val(cyclonedx)
@@ -353,10 +368,10 @@ var fjson
 var swidHead = '<?xml version="1.0" ?>\n<SwidTags>'
 var swidTail = '\n</SwidTags>'
 var cyclonedxHead = '<?xml version="1.0"?>\n<bom '+
-    'serialNumber="'+generate_uuid()+'"\n'+
-    'xmlns="http://cyclonedx.org/schema/bom/1.1">\n'+
-    '<components>\n'
-var cyclonedxTail = '\n</components>\n</bom>\n'
+    'serialNumber="urn:uuid:'+generate_uuid()+'" \n'+
+    'version = "1" '+
+    'xmlns="http://cyclonedx.org/schema/bom/1.2">\n'
+var cyclonedxTail = '\n</bom>\n'
 var diagonal,tree,svg,duration,root
 var treeData = []
 var vul_data = []

@@ -1,4 +1,9 @@
 /* SBOM-Demo css.css version 2.6 */
+.tright {
+    right:6px;
+    top: 6px;
+    position:fixed;
+}
 .octicon-mark-github {
     width: 24px;
 }
