@@ -1,6 +1,21 @@
 /* SBOM-Demo script.js version 3.8  */
 const _version = 3.8
-
+function readFile(input) {
+    var file = input.files[0];
+    var reader = new FileReader();
+    reader.readAsText(file);
+    reader.onload = function() {
+	//console.log(reader.result);	
+	parse_spdx(reader.result)
+    };
+    
+    reader.onerror = function() {
+	console.log(reader.error);
+	alert("File reading as text failed")
+    };
+    
+}
+    
 function do_example() {
     $('#main_table .cmp_table').remove()
     add_cmp()
@@ -36,6 +51,133 @@ function do_example() {
 	load_vuls()
 	simulate_vuls()}, 1000)
     
+}
+var khash = {}
+function parse_spdx(spdxin) {
+    if(spdxin == "")
+	spdxin = $('pre#pspdx').text()
+    spdxin = spdxin.replace(/\n\s+/g,'\n')
+    khash = {}
+    var lines = spdxin.split("\n")
+    for (var i=0; i<lines.length; i++) {
+	/* Ignore Comments */
+	if(lines[i][0] == '#') continue;
+	var line = lines[i].split(':')
+	var key = line.shift()
+	var val =  line.join(":").replace(/^\s+/,'')
+	key in khash ? khash[key].push(val) : khash[key] = [val]
+    }
+    /* Some data clean up and ordering */
+    if('SPDXID' in khash)     /* SPDXID is repeated collect components SPDXID*/
+	khash["CSPDXID"] = khash["SPDXID"].splice(1)
+    /* Remove <text> HTML stuff from Comment */
+    if('CreatorComment' in khash)
+	khash["CreatorComment"][0] = $('<div>').html(khash["CreatorComment"][0]).text()
+    if('Creator' in khash) {
+	var allcreators = khash['Creator'].splice(1)
+	/* Mandatory but many values allowed  but not supported
+	khash['Creator'][0] = khash['Creator'][0] +"\n"+allcreators.join("\n")
+	*/
+	/* For this demo only use simplify this ignore all others */
+	var creatordata =  khash['Creator'][0].split(":")
+	if(creatordata.length > 1) {
+	    khash['CreatorType'] = [creatordata.shift()]
+	    khash['Creator'][0] = creatordata.join(":")
+	}else
+	    khash['CreatorType'][0] = "Organization"
+    }
+    var headkeys = $('#main_table .thead :input')
+    for(var i=0; i< headkeys.length; i++) {
+	var field = headkeys[i]
+	if(!(field.name in khash)) {
+	    alert("Data does not contain required field "+field.name)
+	    invalid_feedback(field,"No header data found for "+headdata[i])
+	    return false
+	}
+	if(khash[field.name].length != 1) {
+	    alert("Cardinality error for "+field.name+", only one value allowed found "+
+		  khash[field.name].length+" values")
+	    return false
+	}
+	field.value = khash[field.name][0]
+    }
+    var plen = khash["PackageName"].length
+    /* Create empty array for supplier name and supplier type comes from 
+       PackageSupplier: $SupplierType: $SupplierName 
+       variables */
+    khash['SupplierType'] = Array(plen).fill("Organization")
+    khash['SupplierName'] = Array(plen)
+    khash["CRelationship"] = khash['Relationship']
+    khash['Relationship'] = Array(plen).fill("Included")
+    khash['ParentComponent'] = Array(plen).fill("PrimaryComponent")
+    khash['Relationship'][0] = 'Primary'
+    /* Default primary component index is 0, search for DESCRIBES  */
+    var pIndex = 0
+    for(var i=0; i< plen; i++) {
+	if(khash["CRelationship"][i].indexOf(khash['SPDXID']+' DESCRIBES ') > -1) {
+	    pIndex = i
+	    /* Capture parent SPDXID */
+	    khash["PSPDXID"] = khash["CSPDXID"][i]
+	}
+	else
+	    add_cmp()
+    }	
+    /* SPDXID */
+    
+    var pcmps = $('#main_table .pcmp_table :input')
+    fill_component(pcmps,pIndex)
+    var cmps = $('#main_table .cmp_table')
+    //console.log(pIndex)
+    for(var i=0; i< plen; i++) {
+	if(i == pIndex) /* Primary component already handled earlier */
+	    continue
+	var scmps = $(cmps[i-1]).find(":input")
+	if(scmps.length > 0) 
+	    fill_component(scmps,i)
+    }
+    update_relationships(khash,pIndex)
+}
+function update_relationships(khash) {
+    /* Use relationships and parent index to find all relevant relationships */
+    if($('#main_table .cmp_table').length + 1 != khash["CRelationship"].length) {
+	console.log("Relationship could not be updated")
+	alert("Error loading SPDX into form Relationships are not matching")
+	return false
+    }
+    var documentSPDXId = khash["SPDXID"][0]
+    var relationships = khash["CRelationship"]
+    var componentIds = khash["CSPDXID"]
+    for(var i=0; i<relationships.length; i++) {
+	/* "SPDXRef-DOCUMENT DESCRIBES SPDXRef-INFUSION" */
+	var parts = relationships[i].split(/\s+/)
+	if(parts[1] == "DESCRIBES") /* Primary component continue */
+	    continue
+	if(parts[0] == khash["PSPDXID"]) /* Parent is the primary component default behavior */
+	    continue
+	/* Find how other things are related "SPDXRef-Java-8 CONTAINS SPDXRef-Spring-Framework" */
+	var myindex = khash["CSPDXID"].findIndex(x=> x == parts[0])
+	if(myindex > 0) {
+	    $($('#main_table .cmp_table')[i-1]).
+		find(".ParentComponent").val("Component"+String(myindex))
+	}
+    }
+    /* Trigger all renaming of components */
+    $('[name="PackageName"]').trigger('change')	
+}
+
+function fill_component(xcmps,xIndex) {
+    for(var i=0; i< xcmps.length; i++) {
+	var field = xcmps[i]
+	/* PackageSupplier: $SupplierType: $SupplierName  */
+	var supplierdata =  khash['PackageSupplier'][xIndex].split(":")
+	if(supplierdata.length > 1) {
+	    khash['SupplierType'][xIndex] = [supplierdata.shift()]
+	    khash['SupplierName'][xIndex] = supplierdata.join(":")
+	}else
+	    khash['SupplierType'][xIndex] = "Organization"
+	
+	field.value = khash[field.name][xIndex] 
+    }
 }
 function update_cmp_names(w) {
     var mtable = $(w).closest('table')
@@ -535,7 +677,7 @@ function add_color_child(vid,cvss_score,vul_d) {
 	return
     for(var i=0; i<alltreeData[vcid].children.length; i++) {
 	var tvcid = alltreeData[vcid].children[i]['id']
-	console.log(tvcid)
+	//console.log(tvcid)
 	$('circle[sid='+tvcid+']').css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
 	    .data(vul_d).addClass('has_vul')
 	add_color_child(tvcid,cvss_score,vul_d)

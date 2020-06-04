@@ -1,4 +1,8 @@
 /* SBOM-Demo css.css version 2.6 */
+.mauto {
+    width: auto;
+    display:inline;
+}
 .blackbody {
     background-color: #222;
     color: white;
@@ -44,9 +48,11 @@
     display:inline;
     width: 14ch;
 }
-.cmp_table td {
-    width: 50%;
-    max-width:50%;
+#main_table td:first-child,
+.pcmp_table td:first-child,
+.cmp_table td:first-child {
+    width: 40%;
+    max-width:40%;
 }
 #mpopup {
     display: none;

@@ -22,7 +22,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"  async defer
 	    integrity="sha384-N8EP0Yml0jN7e0DcXlZ6rt+iqKU9Ck6f1ZQ+j2puxatnBq4k9E8Q6vqBcY34LNbn"
 	    crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="css.css?v=1591150746">
+    <link rel="stylesheet" href="css.css?v=1591284503">
   </head>
   <body>
     <div id="scontent" class="coverpage">
@@ -84,6 +84,8 @@
 	      <th colspan="2" class="text-center">
 		SBOM data collection with sample
 		<a href="javascript:void(0)" onclick="do_example()">Example</a>
+		| 
+		<a href="javascript:void(0)" onclick="$('#spdxload').click()">Import SPDX</a>
 		<br />
 		<small>
 		(generates a SPDX-2.1 under CC0-1.0 license with default
@@ -92,53 +94,60 @@
 	      </th>
 	  </tr></thead>
 	  <tbody>
-	    <tr style="display:none">
+	    <tr style="display:none" class="thead">
 	      <td>SPDXVersion</td>
 	      <td>
 		<input class="form-control" type="text" name="SPDXVersion" value="SPDX-2.1"
 		       value="SPDX-2.1"  placeholder="SPDX-2.1">
 	      </td>
 	    </tr>
-	    <tr style="display:none">
+	    <tr style="display:none" class="thead">
 	      <td>DataLicense</td>
 	      <td>
 		<input class="form-control" type="text" name="DataLicense" placeholder="CC0-1.0"
 		       value="CC0-1.0">
 	      </td>
 	    </tr>
-	    <tr style="display:none">
+	    <tr style="display:none" class="thead">
 	      <td>SPDXID</td>
 	      <td><input class="form-control" type="text" name="SPDXID" 
 			 value="SPDXRef-DOCUMENT"
 			 placeholder="SPDXRef-DOCUMENT">
 	      </td>
 	    </tr>
-	    <tr><td>DocumentName</td>
+	    <tr class="thead">
+	      <td>DocumentName</td>
 	      <td><input class="form-control" type="text" name="DocumentName" placeholder="ACME-INFUSION-1.0-SBOM-DRAFT">
 	      </td>
 	    </tr>
-	    <tr>
+	    <tr class="thead">
 	      <td>DocumentNamespace</td>
 	      <td><input class="form-control" type="url" name="DocumentNamespace" placeholder="http://www.hospitalproducts.acme">
 	      </td>
 	    </tr>
-	    <tr>
-	      <td>Creator</td>
+	    <tr class="thead">
+	      <td>Creator:</td>
 	      <td>
-		<input class="form-control" type="text" name="Creator" placeholder="ACME-Hospital-Division()">
+		<select name="CreatorType" class="form-control mauto">
+		  <option>Organization</option>
+		  <option>Person</option>
+		</select>
+		<input class="form-control mauto" type="text" name="Creator" 
+		       placeholder="ACME-Hospital-Division()">
 	      </td>
 	    </tr>
-	    <tr><td>Created</td>
+	    <tr class="thead">
+	      <td>Created</td>
 	      <td>
 		<input class="form-control" type="datetime-local" name="Created" 
 		       placeholder="2020-04-15T10:00">
 	      </td>
 	    </tr>
-	    <tr>
+	    <tr class="thead">
 	      <td>CreatorComment</td>
 	      <td>
 		<textarea class="form-control not_required" name="CreatorComment"
-			  placeholder="Draft SCME INFUSION PoC II SBOM document in SPDX format. Unofficial content for demonstration purposes only."> </textarea>
+			  placeholder="Draft ACME INFUSION PoC II SBOM document in SPDX format. Unofficial content for demonstration purposes only."> </textarea>
 	      </td>
 	    </tr>
 	    <tr>
@@ -170,7 +179,11 @@
 		    <tr>
 		      <td>Supplier Name:</td>
 		      <td>
-			<input class="form-control" type="text" placeholder="ACME"
+			<select name="SupplierType" class="form-control mauto">
+			  <option>Organization</option>
+			  <option>Person</option>
+			</select>
+			<input class="form-control mauto" type="text" placeholder="ACME"
 			       name="SupplierName">
 		      </td>
 		    </tr>
@@ -248,7 +261,11 @@
 	    <tr>
 	      <td>Supplier Name:</td>
 	      <td>
-		<input class="form-control"  type="text" placeholder="Microsoft"
+		<select name="SupplierType" class="form-control mauto">
+		  <option>Organization</option>
+		  <option>Person</option>
+		</select>
+		<input class="form-control mauto"  type="text" placeholder="Microsoft"
 		       name="SupplierName"/>
 	      </td>
 	    </tr>	
@@ -278,7 +295,7 @@
 	## Creator: Organization: Organization-Division()
 	## Created should be in ISO 8601 standard, UTC format: YYYY-MM-DDThh:mm:ssZ
 	## Created: 2019-12-25T11:00:00Z
-	Creator: Organization: $Creator
+	Creator: $CreatorType: $Creator
 	Created: $Created
 	CreatorComment: &lt;text&gt;$CreatorComment&lt;/text&gt;
       </div>
@@ -334,7 +351,7 @@
 	SPDXID: SPDXRef-$EscPackageName
 	PackageComment: &lt;text&gt;PURL is pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
 	PackageVersion: $PackageVersion
-	PackageSupplier: Organization: $SupplierName
+	PackageSupplier: $SupplierType: $SupplierName
 	Relationship: $SPDXID DESCRIBES SPDXRef-$EscPackageName
 	PackageDownloadLocation: NOASSERTION
 	FilesAnalyzed: false
@@ -352,7 +369,7 @@
 	SPDXID: SPDXRef-$EscPackageName
 	PackageComment:  &lt;text&gt;PURL is pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
 	PackageVersion: $PackageVersion
-	PackageSupplier: Organization: $SupplierName
+	PackageSupplier: $SupplierType: $SupplierName
 	Relationship: SPDXRef-$PrimaryPackageName CONTAINS SPDXRef-$EscPackageName
 	PackageDownloadLocation: NOASSERTION
 	FilesAnalyzed: false
@@ -445,7 +462,8 @@
       </div>
     </div>
     
-    <script src="script.js?v=1591150746"></script>
+    <script src="script.js?v=1591284503"></script>
+    <input type="file" onchange="readFile(this)" style="opacity:0.1" id="spdxload">
   </body>
 </html>
 
