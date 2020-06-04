@@ -1,4 +1,7 @@
 /* SBOM-Demo css.css version 2.6 */
+.octicon-mark-github {
+    width: 24px;
+}
 .mauto {
     width: auto;
     display:inline;
