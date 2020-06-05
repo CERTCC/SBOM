@@ -1,4 +1,16 @@
 /* SBOM-Demo css.css version 2.6 */
+.swal-title:not(:last-child) {
+    margin-bottom: 2px;
+}
+.swal-title:first-child {
+    margin-top: 2px;
+}
+.cert-tweet {
+    width: 48px;
+    position: fixed;
+    top: 6px;
+    left: 6px;
+}
 .tright {
     right:6px;
     top: 6px;
@@ -12,12 +24,15 @@
     display:inline;
 }
 .blackbody {
-    background-color: #222;
+    background-color: black;
     color: white;
 }
 .blackbody table {
-    background-color: #222;
+    background-color: black;
     color: white;
+}
+.blackbody img, .blackbody #main_table svg {
+    filter: invert(1);
 }
 .blackbody text {
     fill: white;
@@ -135,6 +150,6 @@ pre {
     font-size: 14px;
     border: 2px solid grey;
 }
-#spdx,#swid,#cyclonedx {
+#spdx,#swid,#cyclonedx,#privacy {
     display:none;
 }

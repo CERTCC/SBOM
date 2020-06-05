@@ -26,7 +26,7 @@
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js" async defer
 	    integrity="sha384-RIQuldGV8mnjGdob13cay/K1AJa+LR7VKHqSXrrB5DPGryn4pMUXRLh92Ev8KlGF"
 	    crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="css.css?v=1591293548">
+    <link rel="stylesheet" href="css.css?v=1591399471">
   </head>
   <body>
     <div id="scontent" class="coverpage">
@@ -86,6 +86,8 @@
 	  <thead>
 	    <tr>
 	      <th colspan="2" class="text-center">
+		<img src="cert_tweet_logo.jpg" class="cert-tweet"
+		     onclick="location.href='https://kb.cert.org/'"/>
 		SBOM data collection with sample
 		<a href="javascript:void(0)" onclick="do_example()">Example</a>
 		| 
@@ -93,7 +95,8 @@
 		<br />
 		<div class="tright">
 		  <a href="javascript:void(0)"
-		     onclick="swal('The demo site generates a SPDX-2.1 document under CC0-1.0 license with default SPDXID of SPDXRef-DOCUMENT in tag format!')"
+ 		     onclick="usage_privacy()"
+
 		     title="(generates a SPDX-2.1 under CC0-1.0 license with default
 			    SPDXID of SPDXRef-DOCUMENT)">
 		    <svg height="24" width="24">
@@ -524,8 +527,11 @@
 	</div>
       </div>
     </div>
-    
-    <script src="script.js?v=1591293548"></script>
+    <div id="privacy">
+      This site generates SPDX, SWID and CycloneDX format SBOMs from user provided data.
+      None of the data you enter or simulate is sent or stored at the server.  The data is solely on the client-side.  The tools to generate SPDX,SWID and CycloneDX can all work even if your browser is disconnected from the network after loading the website.
+    </div>
+    <script src="script.js?v=1591399471"></script>
     <input type="file" onchange="readFile(this)" style="opacity:0.1" id="spdxload">
   </body>
 </html>

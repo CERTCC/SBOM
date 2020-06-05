@@ -1,5 +1,10 @@
 /* SBOM-Demo script.js version 3.8  */
 const _version = 3.8
+function usage_privacy() {
+    var msg = $('#privacy').html()
+    var title = 'Usage and Privacy'
+    swal(title,msg)
+}
 function readFile(input) {
     var file = input.files[0];
     var reader = new FileReader();
@@ -254,6 +259,8 @@ function verify_inputs() {
 function generate_spdx() {
     if(verify_inputs() == false)
 	return
+    /* Clear past vuls */
+    //$('.vul_template').not('.d-none').remove()
     var spdx = ""
     var swid = swidHead
     var cyclonedx = cyclonedxHead
@@ -283,7 +290,7 @@ function generate_spdx() {
     hkey['BomRef'] = generate_uuid()
     hkey['PrimaryBomRef'] = hkey['BomRef']
     $('.pcmp_table').data('BomRef', hkey['BomRef'])
-    var PrimaryPackageName = hkey['EscPackageName']
+    var PrimaryPackageName = hkey['PackageName']
     var swidcmp = $('#swid .cmp').val()
 	.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
     var cyclonedxcmp = $('#cyclonedx .cyclonedxpcmp').val()
@@ -677,7 +684,7 @@ function simulate_vuls() {
 	//console.log(vid)
 	//console.log(vcid)
 	//populate_vuls(vul_d)
-	$('circle[sid='+vid+']').css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
+	$('circle[sid="'+vid+'"]').css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
 	    .data(vul_d).addClass('has_vul')
 	setTimeout(function() {
 	    add_color_child(vid,cvss_score*pratio,vul_d)}, 400)
@@ -688,6 +695,10 @@ function simulate_vuls() {
 }
 function add_color_child(vid,cvss_score,vul_d) {
     var vcid = alltreeData.findIndex(x => x.id == vid)
+    if(vcid < 0) {
+	console.log("Some mismatch between vulnerability and latest data")
+	return
+    }
     if(!('children' in alltreeData[vcid]))
 	return
     for(var i=0; i<alltreeData[vcid].children.length; i++) {
