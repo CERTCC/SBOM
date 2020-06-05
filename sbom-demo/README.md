@@ -11,4 +11,5 @@ The tool also generates a simple tree graph to visually verify the SBOM's struct
 You can visit [https://sbom.democert.org/sbom/](https://sbom.democert.org/sbom/) and run the Example to see how it works.
 
 #Data collection and privacy
+
 None of the data you enter or simulate is sent back to the server.  The data sits on the client-side.  The tools to generate SPDX, SWID and CycloneDX can all work even if your browser is disconnected from the network after loading the website.
