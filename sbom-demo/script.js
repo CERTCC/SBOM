@@ -54,15 +54,16 @@ function do_example() {
 	vul_data.push({vul_part:3,cve:'CVE-2019-2697',cvss_score:8.1})
 	add_vul()
 	load_vuls()
-	simulate_vuls()}, 1000)
+	simulate_vuls()
+	add_heatmap(8.1)
+    }, 1000)
     
 }
-var khash = {}
 function parse_spdx(spdxin) {
     if(spdxin == "")
 	spdxin = $('pre#pspdx').text()
     spdxin = spdxin.replace(/\n\s+/g,'\n')
-    khash = {}
+    var khash = {}
     var lines = spdxin.split("\n")
     for (var i=0; i<lines.length; i++) {
 	/* Ignore Comments */
@@ -142,7 +143,7 @@ function parse_spdx(spdxin) {
     }
     update_relationships(khash,pIndex)
 }
-function update_relationships(khash) {
+function update_relationships(khash,xIndex) {
     /* Use relationships and parent index to find all relevant relationships */
     if($('#main_table .cmp_table').length + 1 != khash["CRelationship"].length) {
 	console.log("Relationship could not be updated")
@@ -261,6 +262,7 @@ function generate_spdx() {
 	return
     /* Clear past vuls */
     //$('.vul_template').not('.d-none').remove()
+    $('.scontent').hide()
     var spdx = ""
     var swid = swidHead
     var cyclonedx = cyclonedxHead
@@ -507,8 +509,11 @@ function update(source) {
 	d.x0 = d.x;
 	d.y0 = d.y;
     });
-    if(vul_data.length > 0)
+    if(vul_data.length > 0) {
+	$('circle').removeData()
+	/* resort vul_data by cvss_Score */
 	setTimeout(simulate_vuls,1000)
+    }
 }
 
 function showdiv(d) {
@@ -625,6 +630,11 @@ function showme(divid,vul_flag) {
 	$('#vuls').addClass('d-none')
 }
 function add_heatmap(cvss_score) {
+    if($('#heatmap').data('cvss_score') &&
+       $('#heatmap').data('cvss_score') > cvss_score) {
+	console.log("Previous CVSS score is higher not creating a new map, "+cvss_score)
+	return
+    }
     $('#heatmap').remove()
     $('#graph').append('<table align="center" id="heatmap" style="font-size:14px">'+
 		       '<thead><tr><th colspan="2" style="text-align:center">CVSS '+
@@ -638,7 +648,8 @@ function add_heatmap(cvss_score) {
 	    .attr('title',cscore)
 	if(cscore >= cvss_score) {
 	    x.html('&wedge;').css({color:'white',background:'black'})
-	    /* Empty it out once copied */
+	    $('#heatmap').data({cvss_score:cvss_score})
+	    /* After saving it , Empty it out */
 	    cvss_score = 100
 	}
 	$('#heatbar').append(x)
@@ -704,13 +715,23 @@ function add_color_child(vid,cvss_score,vul_d) {
     for(var i=0; i<alltreeData[vcid].children.length; i++) {
 	var tvcid = alltreeData[vcid].children[i]['id']
 	//console.log(tvcid)
-	$('circle[sid='+tvcid+']').css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
+	var cel = $('circle[sid='+tvcid+']')
+	if((cel.data('cvss_score')) &&
+	   (cel.data('cvss_score') > cvss_score)) {
+	    console.log("Already have higher score in cvss Ignoring");
+	    continue
+	}
+	cel.css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
 	    .data(vul_d).addClass('has_vul')
 	add_color_child(tvcid,cvss_score,vul_d)
     }
 }
 function add_color_parent(vid,cvss_score,vul_d) {
     var vcid = alltreeData.findIndex(x => x.id == vid) 
+    if(vcid < 0) {
+	console.log("Some mismatch between vulnerability and latest data")
+	return
+    }
     //console.log(vcid)
     if(!alltreeData[vcid]) return
     var tnode = alltreeData[vcid]
@@ -722,7 +743,13 @@ function add_color_parent(vid,cvss_score,vul_d) {
 	return
     var pratio = parseFloat($('#pratio').val())    
     var tvcid = tnode['parent']['id']
-    $('circle[sid='+tvcid+']').css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
+    var pel = $('circle[sid='+tvcid+']')
+    if((pel.data('cvss_score')) &&
+	   (pel.data('cvss_score') > cvss_score)) {
+	console.log("Parent already has higher score in cvss Ignoring "+cvss_score);
+	return
+    }    
+    pel.css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
 	.data(vul_d).addClass('has_vul')
     setTimeout( function () {
 	add_color_parent(tvcid,cvss_score*pratio,vul_d)}, 400)

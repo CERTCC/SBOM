@@ -24,14 +24,17 @@
     display:inline;
 }
 .blackbody {
-    background-color: black;
+    background-color: #222;
     color: white;
 }
 .blackbody table {
-    background-color: black;
+    background-color: #222;
     color: white;
 }
-.blackbody img, .blackbody #main_table svg {
+.blackbody img {
+    filter: invert(0.87);
+}
+.blackbody #main_table svg {
     filter: invert(1);
 }
 .blackbody text {

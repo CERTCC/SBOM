@@ -13,3 +13,6 @@ You can visit [https://sbom.democert.org/sbom/](https://sbom.democert.org/sbom/)
 #Data collection and privacy
 
 None of the data you enter or simulate is sent back to the server.  The data sits on the client-side.  The tools to generate SPDX, SWID and CycloneDX can all work even if your browser is disconnected from the network after loading the website.
+
+#Looking for SBOM for this software ?
+Look in self-sbom, currently has no assertions or hash signatures

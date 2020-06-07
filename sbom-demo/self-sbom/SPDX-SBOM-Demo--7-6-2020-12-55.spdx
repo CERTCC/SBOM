@@ -1,0 +1,189 @@
+	## Document Header
+SPDXVersion: SPDX-2.1
+DataLicense: CC0-1.0
+SPDXID: SPDXRef-DOCUMENT
+DocumentName: SBOM-Demo 
+DocumentNamespace: https://sei.cmu.edu
+## *** Framing Baseline Element
+## 2.2.1 Author Name
+## Creator: Organization: Organization-Division()
+## Created should be in ISO 8601 standard, UTC format: YYYY-MM-DDThh:mm:ssZ
+## Created: 2019-12-25T11:00:00Z
+Creator: Organization: Software Engineering Institute
+Created: 2020-06-05T12:43
+CreatorComment: <text> SBOM-Demo tool to support NTIA SBOM healthcare PoC effort. Primary component is the all inclusive index.html file</text>
+## Packages
+## *** Framing Component Baseline Elements
+##
+## 2.2.3 Component Name
+## PackageName: <Component Name>
+##
+## 2.2.6 Unique Identifier
+## SPDXID: "SPDXRef-" followed by letters, numbers, ".", and/or "-".
+## == Recommendation is to use subset of package name for readability.
+## SPDXID: SPDXRef-<PackageName>
+## == SPDX-2.1 Does not support the purl syntax, so it is included as a Package Comment
+## PackageComment: <text> PURL is pkg:supplier/<PackageSupplier>/<PackageName>@<PackageVersion> </text>
+##    Use purl to construct an identifier
+##    scheme:type:namespace/name@version?qualifiers#subpath
+##    scheme: (pkg)
+##  type: (supplier)
+##  namespace: PackageSupplier
+##  name: PackageName
+##  version: PackageVersion
+##  qualifiers#subpath: (skip)
+##
+##  2.2.2 Supplier Name
+## PackageSupplier: <Supplier Name>
+##
+##  2.2.4 Version String
+## PackageVersion: <Version String>
+##
+## 2.2.7 Relationship
+## == Primary Component Relationship (Self)
+## Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-SBOM-Demo
+## == Included Component Relationship (Included in)
+## Relationship: <SPDXRef-1> CONTAINS <SPDXRef-2 style>
+##
+## Note: The following fields are needed to have a valid document that the tools can process
+##       If you know the values, fill them in, otherwise feel free to use these defaults
+## PackageDownloadLocation: NOASSERTION
+## FilesAnalyzed: false
+## PackageLicenseConcluded: NOASSERTION
+## PackageLicenseDeclared: NOASSERTION
+## PackageCopyrightText: NOASSERTION
+##
+## ***Framing Baseline
+## 2.4 Primary Component (described by the SBOM)
+##
+PackageName: SBOM-Demo
+SPDXID: SPDXRef-SBOM-Demo
+PackageComment: <text>PURL is pkg:supplier/SEI/SBOM-Demo@1.3</text>
+PackageVersion: 1.3
+PackageSupplier: Organization: SEI
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-SBOM-Demo
+PackageDownloadLocation: NOASSERTION
+FilesAnalyzed: false
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: NOASSERTION
+##
+## ***Framing Baseline
+## 2.4 First-Level Components
+##
+PackageName: script.js
+SPDXID: SPDXRef-script.js
+PackageComment:  <text>PURL is pkg:supplier/SEI/script.js@3.8</text>
+PackageVersion: 3.8
+PackageSupplier: Organization: SEI
+Relationship: SPDXRef-SBOM-Demo CONTAINS SPDXRef-script.js
+PackageDownloadLocation: NOASSERTION
+FilesAnalyzed: false
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: NOASSERTION
+##
+## ***Framing Baseline
+## 2.4 First-Level Components
+##
+PackageName: css.css
+SPDXID: SPDXRef-css.css
+PackageComment:  <text>PURL is pkg:supplier/SEI/css.css@2.6</text>
+PackageVersion: 2.6
+PackageSupplier: Organization: SEI
+Relationship: SPDXRef-SBOM-Demo CONTAINS SPDXRef-css.css
+PackageDownloadLocation: NOASSERTION
+FilesAnalyzed: false
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: NOASSERTION
+##
+## ***Framing Baseline
+## 2.4 First-Level Components
+##
+PackageName: Bootstrap JS
+SPDXID: SPDXRef-Bootstrap-JS
+PackageComment:  <text>PURL is pkg:supplier/Bootstrap team/Bootstrap%20JS@4.3.1</text>
+PackageVersion: 4.3.1
+PackageSupplier: Organization: Bootstrap team
+Relationship: SPDXRef-SBOM-Demo CONTAINS SPDXRef-Bootstrap-JS
+PackageDownloadLocation: NOASSERTION
+FilesAnalyzed: false
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: NOASSERTION
+##
+## ***Framing Baseline
+## 2.4 First-Level Components
+##
+PackageName: jQuery
+SPDXID: SPDXRef-jQuery
+PackageComment:  <text>PURL is pkg:supplier/The jQuery Foundation/jQuery@3.5.1</text>
+PackageVersion: 3.5.1
+PackageSupplier: Organization: The jQuery Foundation
+Relationship: SPDXRef-SBOM-Demo CONTAINS SPDXRef-jQuery
+PackageDownloadLocation: NOASSERTION
+FilesAnalyzed: false
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: NOASSERTION
+##
+## ***Framing Baseline
+## 2.4 First-Level Components
+##
+PackageName: Bootstrap CSS
+SPDXID: SPDXRef-Bootstrap-CSS
+PackageComment:  <text>PURL is pkg:supplier/Bootstrap Team/Bootstrap%20CSS@4.3.1</text>
+PackageVersion: 4.3.1
+PackageSupplier: Organization: Bootstrap Team
+Relationship: SPDXRef-Bootstrap-JS CONTAINS SPDXRef-Bootstrap-CSS
+PackageDownloadLocation: NOASSERTION
+FilesAnalyzed: false
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: NOASSERTION
+##
+## ***Framing Baseline
+## 2.4 First-Level Components
+##
+PackageName: Popper JS
+SPDXID: SPDXRef-Popper-JS
+PackageComment:  <text>PURL is pkg:supplier/Popperjs Open collective/Popper%20JS@1.14.7</text>
+PackageVersion: 1.14.7
+PackageSupplier: Organization: Popperjs Open collective
+Relationship: SPDXRef-Bootstrap-JS CONTAINS SPDXRef-Popper-JS
+PackageDownloadLocation: NOASSERTION
+FilesAnalyzed: false
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: NOASSERTION
+##
+## ***Framing Baseline
+## 2.4 First-Level Components
+##
+PackageName: D3.js
+SPDXID: SPDXRef-D3.js
+PackageComment:  <text>PURL is pkg:supplier/Mark Bostock D3/D3.js@3.5.17</text>
+PackageVersion: 3.5.17
+PackageSupplier: Person: Mark Bostock D3
+Relationship: SPDXRef-SBOM-Demo CONTAINS SPDXRef-D3.js
+PackageDownloadLocation: NOASSERTION
+FilesAnalyzed: false
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: NOASSERTION
+##
+## ***Framing Baseline
+## 2.4 First-Level Components
+##
+PackageName: SweetAlert js
+SPDXID: SPDXRef-SweetAlert-js
+PackageComment:  <text>PURL is pkg:supplier/SweetAlert Open collective/SweetAlert%20js@2.1.2</text>
+PackageVersion: 2.1.2
+PackageSupplier: Organization: SweetAlert Open collective
+Relationship: SPDXRef-SBOM-Demo CONTAINS SPDXRef-SweetAlert-js
+PackageDownloadLocation: NOASSERTION
+FilesAnalyzed: false
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: NOASSERTION
