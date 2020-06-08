@@ -78,7 +78,8 @@ function parse_spdx(spdxin) {
 	khash["CSPDXID"] = khash["SPDXID"].splice(1)
     /* Remove <text> HTML stuff from Comment */
     if('CreatorComment' in khash)
-	khash["CreatorComment"][0] = $('<div>').html(khash["CreatorComment"][0]).text()
+	khash["CreatorComment"][0] = safeXML(khash["CreatorComment"][0])
+	//$('<div>').html(khash["CreatorComment"][0]).text()
     if('Creator' in khash) {
 	var allcreators = khash['Creator'].splice(1)
 	/* Mandatory but many values allowed  but not supported
@@ -257,6 +258,22 @@ function verify_inputs() {
     }
     return true
 }
+function safeXML(inText) {
+    return inText.replace(/[&<>"'`=\/]/g, function (s) {
+	return "&#" + s.charCodeAt(0) + ";";
+    });
+}
+function validateXML(inXML) {
+    var p = new DOMParser();
+    var o = p.parseFromString(inXML,"text/xml")
+    var err  = o.getElementsByTagName("parsererror")
+    if(err.length> 0) {
+	swal("XML invalid!", "Sorry XML is not valid", "error");
+    } else {
+	swal("Good job!", "XML Validates right, you can use it", "success");
+    }
+}
+
 function generate_spdx() {
     if(verify_inputs() == false)
 	return
@@ -274,14 +291,14 @@ function generate_spdx() {
     var hinputs = $('#main_table > tbody > tr > td > :input')
     var hkey = {}
     hkey['Created'] = new Date($('[name="Created"]').val()).toISOString()
-    hinputs.map(i => hkey[hinputs[i].name] = $('<div>').text(hinputs[i].value).html())
+    hinputs.map(i => hkey[hinputs[i].name] = safeXML(hinputs[i].value))
     fjson.Header = hkey
     var thead = $('#spdx .head').html()
     spdx += thead.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
     hinputs = $('.pcmp_table tr :input')
     var pc = {}
-    hinputs.map(i => { hkey[hinputs[i].name] = $('<div>').text(hinputs[i].value).html();
-		       pc[hinputs[i].name] = $('<div>').text(hinputs[i].value).html();
+    hinputs.map(i => { hkey[hinputs[i].name] =  safeXML(hinputs[i].value);
+		       pc[hinputs[i].name] = safeXML(hinputs[i].value);
 		     })
     fjson.PrimaryComponent = pc
     var tpcmp = $('#spdx .pcomponent').html()
@@ -331,7 +348,7 @@ function generate_spdx() {
 	}
 	cyclonedxdeps += $('.cyclonedxdeps').val().replace('$ChildBomRef',hkey['ChildBomRef'])
 	    .replace('$ParentBomRef',hkey['ParentBomRef'])
-	hinputs.map(i => hkey[hinputs[i].name] = $('<div>').text(hinputs[i].value).html())
+	hinputs.map(i => hkey[hinputs[i].name] = safeXML(hinputs[i].value))
 	alltreeData.push({props: JSON.stringify(hkey),name: hkey['PackageName'],parent: parent,
 			  children:[]})	
 	fjson.Packages.push(hkey)
