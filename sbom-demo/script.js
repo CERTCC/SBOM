@@ -59,11 +59,12 @@ function do_example() {
     }, 1000)
     
 }
+var khash = {}
 function parse_spdx(spdxin) {
     if(spdxin == "")
 	spdxin = $('pre#pspdx').text()
     spdxin = spdxin.replace(/\n\s+/g,'\n')
-    var khash = {}
+    khash = {}
     var lines = spdxin.split("\n")
     for (var i=0; i<lines.length; i++) {
 	/* Ignore Comments */
@@ -78,8 +79,7 @@ function parse_spdx(spdxin) {
 	khash["CSPDXID"] = khash["SPDXID"].splice(1)
     /* Remove <text> HTML stuff from Comment */
     if('CreatorComment' in khash)
-	khash["CreatorComment"][0] = safeXML(khash["CreatorComment"][0])
-	//$('<div>').html(khash["CreatorComment"][0]).text()
+	khash["CreatorComment"][0] = $('<div>').html(khash["CreatorComment"][0]).text()
     if('Creator' in khash) {
 	var allcreators = khash['Creator'].splice(1)
 	/* Mandatory but many values allowed  but not supported
@@ -290,8 +290,8 @@ function generate_spdx() {
     fjson={"Header":{},"PrimaryComponent":{},"Packages":[]}
     var hinputs = $('#main_table > tbody > tr > td > :input')
     var hkey = {}
-    hkey['Created'] = new Date($('[name="Created"]').val()).toISOString()
     hinputs.map(i => hkey[hinputs[i].name] = safeXML(hinputs[i].value))
+    hkey['Created'] = new Date($('[name="Created"]').val()).toISOString().replace(/\.\d{3}Z/,'Z')
     fjson.Header = hkey
     var thead = $('#spdx .head').html()
     spdx += thead.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
