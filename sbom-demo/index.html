@@ -26,7 +26,7 @@
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js" async defer
 	    integrity="sha384-RIQuldGV8mnjGdob13cay/K1AJa+LR7VKHqSXrrB5DPGryn4pMUXRLh92Ev8KlGF"
 	    crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="css.css?v=1591491305">
+    <link rel="stylesheet" href="css.css?v=1592101102">
   </head>
   <body>
     <div id="scontent" class="coverpage">
@@ -39,21 +39,21 @@
 	<a href="javascript:void(0)" onclick="showme('#spdxcontent',0)">
 	  SPDX
 	</a>
-	<a id="dlspdx" class="dldr" alt="Download SPDX" title="Download SPDX">
+	<a id="dlspdx" class="dldr" title="Download SPDX">
 	  &darr;
 	</a>
 	| 
 	<a href="javascript:void(0)" onclick="showme('#swidcontent',0)">
 	  SWID
 	</a>
-	<a id="dlswid" class="dldr" alt="Download SWID" title="Download SWID">
+	<a id="dlswid" class="dldr" title="Download SWID">
 	  &darr;
 	</a>
 	| 
 	<a href="javascript:void(0)" onclick="showme('#cyclonedxcontent',0)">
 	  CycloneDX
 	</a>
-	<a id="dlcyclonedx" class="dldr" alt="Download CycloneDX" title="Download CycleDX">
+	<a id="dlcyclonedx" class="dldr" title="Download CycleDX">
 	  &darr;
 	</a>
 	| 
@@ -62,7 +62,7 @@
 	  Graph
 	</a>
 	<a id="dlsvg" class="dldr" style="display:none"
-	   alt="Download SVG Graph" title="Download SVG Graph">
+	   title="Download SVG Graph">
 	  &darr;
 	</a>	
       </h4>
@@ -86,7 +86,7 @@
 	  <thead>
 	    <tr>
 	      <th colspan="2" class="text-center">
-		<img src="cert_tweet_logo.jpg" class="cert-tweet"
+		<img src="cert_tweet_logo.jpg" class="cert-tweet" alt="CERT Logo"
 		     onclick="$('body').toggleClass('blackbody')"/>
 		SBOM data collection with sample
 		<a href="javascript:void(0)" onclick="do_example()">Example</a>
@@ -94,23 +94,16 @@
 		<a href="javascript:void(0)" onclick="$('#spdxload').click()">Import SPDX</a>
 		<br />
 		<div class="tright">
-		  <a href="javascript:void(0)"
+		  <a href="javascript:void(0)" class="circletext"
  		     onclick="usage_privacy()"
-
 		     title="(generates a SPDX-2.1 under CC0-1.0 license with default
 			    SPDXID of SPDXRef-DOCUMENT)">
-		    <svg height="24" width="24">
-		      <circle cx="12" cy="12" r="11" stroke="black" stroke-width="1"
-			      fill="black" />
-		      <text x="50%" y="50%" text-anchor="middle"
-			    fill="#ffffff" stroke-width="0.05em" dy=".3em">i</text>
-
-		      </svg> 
+		    i
 		  </a>
-		<a href="https://github.com/CERTCC/SBOM/tree/master/sbom-demo"
-		   title="Code Git Repo" alt="Code Git Repo">
-		  <svg height="32" class="octicon octicon-mark-github text-white" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-		</a>
+		  <a href="https://github.com/CERTCC/SBOM/tree/master/sbom-demo"
+		     title="Code Git Repo">
+		    <svg height="32" class="octicon octicon-mark-github text-white" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+		  </a>
 		</div>
 	      </th>
 	  </tr></thead>
@@ -118,7 +111,7 @@
 	    <tr style="display:none" class="thead">
 	      <td>SPDXVersion</td>
 	      <td>
-		<input class="form-control" type="text" name="SPDXVersion" value="SPDX-2.1"
+		<input class="form-control" type="text" name="SPDXVersion"
 		       value="SPDX-2.1"  placeholder="SPDX-2.1">
 	      </td>
 	    </tr>
@@ -137,17 +130,17 @@
 	      </td>
 	    </tr>
 	    <tr class="thead">
-	      <td>DocumentName</td>
+	      <td>Document Name</td>
 	      <td><input class="form-control" type="text" name="DocumentName" placeholder="ACME-INFUSION-1.0-SBOM-DRAFT">
 	      </td>
 	    </tr>
 	    <tr class="thead">
-	      <td>DocumentNamespace</td>
+	      <td>Document Namespace</td>
 	      <td><input class="form-control" type="url" name="DocumentNamespace" placeholder="http://www.hospitalproducts.acme">
 	      </td>
 	    </tr>
 	    <tr class="thead">
-	      <td>Creator:</td>
+	      <td>Creator</td>
 	      <td>
 		<select name="CreatorType" class="form-control mauto">
 		  <option>Organization</option>
@@ -160,15 +153,16 @@
 	    <tr class="thead">
 	      <td>Created</td>
 	      <td>
-		<input class="form-control" type="datetime-local" name="Created" 
-		       placeholder="2020-04-15T10:00">
+		<input class="form-control" type="datetime-local" name="Created">
+
 	      </td>
 	    </tr>
 	    <tr class="thead">
-	      <td>CreatorComment</td>
+	      <td>Creator Comment</td>
 	      <td>
 		<textarea class="form-control not_required" name="CreatorComment"
-			  placeholder="Draft ACME INFUSION PoC II SBOM document in SPDX format. Unofficial content for demonstration purposes only."> </textarea>
+			  placeholder="Draft ACME INFUSION PoC II SBOM document in SPDX format. Unofficial content for demonstration purposes only"
+			  data-required="0"></textarea>
 	      </td>
 	    </tr>
 	    <tr>
@@ -176,14 +170,26 @@
 		<table class="table pcmp_table" id="PrimaryComponent">
 		  <thead>
 		    <tr class="remover">
-		      <th colspan="2" class="text-center cmp_title text-info">
-			Primary Component 
+		      <th colspan="2" class="text-center text-info">
+			<span class="cmp_title">Primary Component</span>
+			<a href="https://spdx.github.io/spdx-spec/appendix-VIII-SPDX-Lite/"
+			   title="SPDX Lite support for additional fields" 
+			   target="_blank" class="circletext float-right spdx-lite">
+			  &quest;
+			</a>
+			<span class="float-right"> &nbsp; </span>
+			<button class="btn btn-info float-right spdx-lite"
+				data-toggle="tooltip" data-placement="top"
+				title="Add optional SPDX Lite fields"
+				onclick="$('.spdx-lite').toggleClass('d-none')">
+			  + SPDX Lite
+			</button>
 		      </th>
 		    </tr>
 		  </thead><tbody>
 
 		    <tr>
-		      <td>Component Name:</td>
+		      <td>Component Name</td>
 		      <td>
 			<input class="form-control" type="text" placeholder="INFUSION"
 			       onchange="update_cmp_names(this)"
@@ -191,14 +197,14 @@
 		      </td>
 		    </tr>
 		    <tr>
-		      <td>Version:</td>
+		      <td>Version</td>
 		      <td>
 			<input class="form-control" type="text" placeholder="1.0"
 			       name="PackageVersion">
 		      </td>
 		    </tr>
 		    <tr>
-		      <td>Supplier Name:</td>
+		      <td>Supplier Name</td>
 		      <td>
 			<select name="SupplierType" class="form-control mauto">
 			  <option>Organization</option>
@@ -209,31 +215,145 @@
 		      </td>
 		    </tr>
 		    <tr>
-		      <td>Relationship:</td>
+		      <td>Relationship</td>
 		      <td>
-			<select class="form-control" name="Relationship" placeholder="Primary"
+			<select class="form-control" name="Relationship" 
 				disabled="disabled">
 			  <option>Primary</option>
 			  <option>Included</option>
 			</select>
 		      </td>
 		    </tr>
+		    <tr class="spdx-lite d-none">
+		      <td>Package File Name</td>
+		      <td>
+			<input class="form-control not_required spdx-lite-field" type="text"
+			       name="PackageFileName" data-required="0"
+			       value=""  placeholder="Filename.extension">			
+		      </td>
+		    </tr>
+		    <tr class="spdx-lite d-none">
+		      <td>Package Download Location</td>
+		      <td>
+			<input class="form-control prefill" type="text"
+			       name="PackageDownloadLocation" data-required="1"
+			       value="NOASSERTION" data-default="NOASSERTION"
+			       placeholder="https://github.com/MySoftware/Mypackage.exe">
+		      </td>
+		    </tr>
+		    <tr class="spdx-lite d-none">
+		      <td>Files Analyzed</td>
+		      <td>
+			<select name="FilesAnalyzed" class="form-control">
+			  <option selected>false</option>
+			  <option>true</option>
+			</select>
+		      </td>
+		    </tr>
+		    <tr class="spdx-lite d-none">
+		      <td>Package Home Page</td>
+		      <td>
+			<input class="form-control not_required spdx-lite-field" type="url"
+			       name="PackageHomePage" data-required="0"
+			       value="" data-default="NOASSERTION"
+			       placeholder="https://github.com/MySoftware/">
+		      </td>
+		    </tr>
+		    <tr class="spdx-lite d-none">
+		      <td>Concluded License</td>
+		      <td>
+			<input class="form-control prefill" type="text"
+			       name="PackageLicenseConcluded" data-required="1"
+			       value="NOASSERTION" data-default="NOASSERTION"
+			       placeholder="BSD-3-Clause">
+		      </td>
+		    </tr>
+		    <tr class="spdx-lite d-none">
+		      <td>Declared License</td>
+		      <td>
+			<input class="form-control prefill" type="text"
+			       name="PackageLicenseDeclared" data-required="1"
+			       value="NOASSERTION" data-default="NOASSERTION"
+			       placeholder="(BSD-3-Clause and LGPL-2.0)">
+		      </td>
+		    </tr>		    		    		    
+                    <tr class="spdx-lite d-none">
+		      <td>Comments on License</td>
+		      <td>
+			<textarea name="PackageLicenseComments" data-required="0"
+				  class="form-control not_required spdx-lite-field"
+				  placeholder="The license now includes LGPL due to new component"
+				  data-default="<text></text>"></textarea>
+		      </td>
+		    </tr>
+                    <tr class="spdx-lite d-none">
+		      <td>Copyright Text</td>
+		      <td>
+			<textarea name="PackageCopyrightText" data-required="0"
+				  class="form-control prefill"
+				  placeholder="Copyright 2020-2024 &#902;&#947;&#947;&#949;&#955;&#959;&#962; &#932;&#965;&#961;&#941;&#957;&#959;&#965;&#962;"
+				  data-default="NOASSERTION">NOASSERTION</textarea>
+		      </td>
+		    </tr>
+
+                    <tr class="spdx-lite d-none">
+		      <td>License Identifier</td>
+		      <td>
+			<input type="text" name="LicenseID" value="" pattern="[A-Za-z0-9\-\.]"
+			       class="form-control not_required spdx-lite-field"
+			       data-required="0" data-prefix="LicenseID-"
+			       placeholder="Shareware-4.3"/>
+		      </td>
+		    </tr>
+                    <tr class="spdx-lite d-none">
+		      <td>Extracted Text</td>
+		      <td>
+			<textarea name="ExtractedText" data-required="0"
+				  placeholder="This software is licensed by more than one license clause"
+				  class="form-control not_required spdx-lite-field"
+				  data-default="<text></text>"></textarea>
+		      </td>
+		    </tr>
+                    <tr class="spdx-lite d-none">
+		      <td>License Name</td>
+		      <td>
+			<input type="text" name="LicenseName" value=""
+			       class="form-control not_required spdx-lite-field"
+			       data-required="0" 
+			       placeholder="Shareware-License"/>
+		      </td>
+		    </tr>
+                    <tr class="spdx-lite d-none">
+		      <td>License Comment</td>
+		      <td>
+			<textarea name="LicenseComment" data-required="0"
+				  placeholder="New changes applied due to LGPL-2.0"
+				  class="form-control not_required spdx-lite-field"
+				  data-default="<text></text>"></textarea>
+		      </td>
+		    </tr>		    
 		  </tbody>
 		</table>
 	      </td>
 	    </tr>
 	    <tr class="tail">
 	      <td colspan="2">
-		<button class="btn btn-success" onclick="add_cmp()">
+		<button class="btn btn-success" onclick="add_cmp()"
+			data-toggle="tooltip" data-placement="top"
+			title="Add an included software component">
 		  + Add Component
 		</button>
 		<div class="float-right">
 		  <button class="btn btn-warning"
+			  data-toggle="tooltip" data-placement="top"
+			  title="Clear all and reset form"
 			  onclick="location.reload()">
 		    Reset
 		  </button>
 		  &nbsp; 
-		  <button class="btn btn-primary" onclick="generate_spdx()">
+		  <button class="btn btn-primary" onclick="generate_spdx()"
+			  data-toggle="tooltip" data-placement="top"
+			  title="Generate SPDX from Form data">		    
 		    Generate SPDX/SWID
 		  </button>
 		</div>
@@ -256,7 +376,7 @@
 	  </tr>
 	  <tbody>
 	    <tr>
-	      <td>Parent Component:</td>
+	      <td>Parent Component</td>
 	      <td>
 		<select name="ParentComponent" class="form-control ParentComponent">
 		  <option value="PrimaryComponent">PrimaryComponent</option>
@@ -265,7 +385,7 @@
 	    </tr>
 	    
 	    <tr> 
-	      <td>Component Name:</td>
+	      <td>Component Name</td>
 	      <td>
 		<input class="form-control" type="text" name="PackageName"
 		       onchange="update_cmp_names(this)" 
@@ -273,14 +393,14 @@
 	      </td>
 	    </tr>
 	    <tr>
-	      <td>Version:</td>
+	      <td>Version</td>
 	      <td>
 		<input class="form-control"  type="text" name="PackageVersion"
 		       placeholder="6.1.7601"/>
 	      </td>
 	    </tr>
 	    <tr>
-	      <td>Supplier Name:</td>
+	      <td>Supplier Name</td>
 	      <td>
 		<select name="SupplierType" class="form-control mauto">
 		  <option>Organization</option>
@@ -291,20 +411,128 @@
 	      </td>
 	    </tr>	
 	    <tr>
-	      <td>Relationship:</td>
+	      <td>Relationship</td>
 	      <td>
-		<select class="form-control"  name="Relationship" placeholder="Included"
+		<select class="form-control"  name="Relationship" 
 			disabled="disabled">
 		  <option>Included</option>
 		  <option>Primary</option>
 		</select>
 	      </td>
 	    </tr>
+	    <tr class="spdx-lite d-none">
+	      <td>Package File Name</td>
+	      <td>
+		<input class="form-control not_required spdx-lite-field" type="text"
+		       name="PackageFileName" data-required="0"
+		       value=""  placeholder="Filename.extension">			
+	      </td>
+	    </tr>
+	    <tr class="spdx-lite d-none">
+	      <td>Package Download Location</td>
+	      <td>
+		<input class="form-control prefill" type="text"
+		       name="PackageDownloadLocation" data-required="1"
+		       value="NOASSERTION" data-default="NOASSERTION"
+		       placeholder="https://github.com/MySoftware/Mypackage.exe">
+	      </td>
+	    </tr>
+	    <tr class="spdx-lite d-none">
+	      <td>Files Analyzed</td>
+	      <td>
+		<select name="FilesAnalyzed" class="form-control">
+		  <option selected>false</option>
+		  <option>true</option>
+		</select>
+	      </td>
+	    </tr>
+	    <tr class="spdx-lite d-none">
+	      <td>Package Home Page</td>
+	      <td>
+		<input class="form-control not_required spdx-lite-field" type="url"
+		       name="PackageHomePage" data-required="0"
+		       value="" data-default="NOASSERTION"
+		       placeholder="https://github.com/MySoftware/">
+	      </td>
+	    </tr>
+	    <tr class="spdx-lite d-none">
+	      <td>Concluded License</td>
+	      <td>
+		<input class="form-control prefill" type="text"
+		       name="PackageLicenseConcluded" data-required="1"
+		       value="NOASSERTION" data-default="NOASSERTION"
+		       placeholder="BSD-3-Clause">
+	      </td>
+	    </tr>
+	    <tr class="spdx-lite d-none">
+	      <td>Declared License</td>
+	      <td>
+		<input class="form-control  prefill" type="text"
+		       name="PackageLicenseDeclared" data-required="1"
+		       value="NOASSERTION" data-default="NOASSERTION"
+		       placeholder="(BSD-3-Clause and LGPL-2.0)">
+	      </td>
+	    </tr>		    		    		    
+            <tr class="spdx-lite d-none">
+	      <td>Comments on License</td>
+	      <td>
+		<textarea name="PackageLicenseComments" data-required="0"
+			  class="form-control not_required spdx-lite-field"
+			  placeholder="The license now includes LGPL due to new component"
+			  data-default="<text></text>"></textarea>
+	      </td>
+	    </tr>
+            <tr class="spdx-lite d-none">
+	      <td>Copyright Text</td>
+	      <td>
+		<textarea name="PackageCopyrightText" data-required="0"
+			  class="form-control prefill"
+			  placeholder="Copyright 2020-2024 &#902;&#947;&#947;&#949;&#955;&#959;&#962; &#932;&#965;&#961;&#941;&#957;&#959;&#965;&#962;"
+			  data-default="NOASSERTION">NOASSERTION</textarea>
+	      </td>
+	    </tr>
+            <tr class="spdx-lite d-none">
+	      <td>License Identifier</td>
+	      <td>
+		<!--  letters, numbers, . and/or -.  -->
+		<input type="text" name="LicenseID" value="" pattern="[A-Za-z0-9\-\.]"
+		       class="form-control not_required spdx-lite-field"
+		       data-required="0" data-prefix="LicenseID-"
+		       placeholder="Shareware-4.3"/>
+	      </td>
+	    </tr>
+            <tr class="spdx-lite d-none">
+	      <td>Extracted Text</td>
+	      <td>
+		<textarea name="ExtractedText" data-required="0"
+			  placeholder="This software is licensed by more than one license clause"
+			  class="form-control not_required spdx-lite-field"
+			  data-default="<text></text>"></textarea>
+	      </td>
+	    </tr>
+            <tr class="spdx-lite d-none">
+	      <td>License Name</td>
+	      <td>
+		<input type="text" name="LicenseName" value=""
+		       class="form-control not_required spdx-lite-field"
+		       data-required="0" 
+		       placeholder="Shareware-License"/>
+	      </td>
+	    </tr>
+            <tr class="spdx-lite d-none">
+	      <td>License Comment</td>
+	      <td>
+		<textarea name="LicenseComment" data-required="0"
+			  placeholder="New changes applied due to LGPL-2.0"
+			  class="form-control not_required spdx-lite-field"
+			  data-default="<text></text>"></textarea>
+	      </td>
+	    </tr>
+	    
       </table>
     </div>
     <div id="spdx" class="spdx">
-      <div class="head">
-	## Document Header
+      <div class="head">## Document Header
 	SPDXVersion: $SPDXVersion
 	DataLicense: $DataLicense
 	SPDXID: $SPDXID
@@ -374,12 +602,11 @@
 	PackageVersion: $PackageVersion
 	PackageSupplier: $SupplierType: $SupplierName
 	Relationship: $SPDXID DESCRIBES SPDXRef-$EscPackageName
-	PackageFileName: $PackageFileName
-	PackageDownloadLocation: NOASSERTION
-	FilesAnalyzed: false
-	PackageLicenseConcluded: NOASSERTION
-	PackageLicenseDeclared: NOASSERTION
-	PackageCopyrightText: NOASSERTION
+	PackageDownloadLocation: $PackageDownloadLocation
+	FilesAnalyzed: $FilesAnalyzed
+	PackageLicenseConcluded: $PackageLicenseConcluded
+	PackageLicenseDeclared: $PackageLicenseDeclared
+	PackageCopyrightText: $PackageCopyrightText
       </div>
       <div class="subcomponent">
 
@@ -393,11 +620,11 @@
 	PackageVersion: $PackageVersion
 	PackageSupplier: $SupplierType: $SupplierName
 	Relationship: SPDXRef-$PrimaryPackageName CONTAINS SPDXRef-$EscPackageName
-	PackageDownloadLocation: NOASSERTION
-	FilesAnalyzed: false
-	PackageLicenseConcluded: NOASSERTION
-	PackageLicenseDeclared: NOASSERTION
-	PackageCopyrightText: NOASSERTION
+	PackageDownloadLocation: $PackageDownloadLocation
+	FilesAnalyzed: $FilesAnalyzed
+	PackageLicenseConcluded: $PackageLicenseConcluded
+	PackageLicenseDeclared: $PackageLicenseDeclared
+	PackageCopyrightText: $PackageCopyrightText
       </div>
       
     </div>
@@ -529,10 +756,10 @@
       </div>
     </div>
     <div id="privacy">
-      This site generates SPDX, SWID and CycloneDX format SBOMs from user provided data.
+      This site generates SPDX, SWID and CycloneDX format SBOMs from user provided data. Fields with dashed border are optional. SPDX-Lite is supported.
       None of the data you enter or simulate is sent or stored at the server.  The data is solely on the client-side.  The tools to generate SPDX,SWID and CycloneDX can all work even if your browser is disconnected from the network after loading the website.
     </div>
-    <script src="script.js?v=1591889717"></script>
+    <script src="script.js?v=1592101330"></script>
     <input type="file" onchange="readFile(this)" style="opacity:0.1" id="spdxload">
   </body>
 </html>

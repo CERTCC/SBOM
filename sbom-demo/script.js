@@ -1,5 +1,28 @@
 /* SBOM-Demo script.js version 3.8  */
 const _version = 3.8
+var fjson
+var swidHead = '<?xml version="1.0" ?>\n<SwidTags>'
+var swidTail = '\n</SwidTags>'
+var cyclonedxHead = '<?xml version="1.0"?>\n<bom '+
+    'serialNumber="urn:uuid:'+generate_uuid()+'" \n'+
+    'version = "1" '+
+    'xmlns="http://cyclonedx.org/schema/bom/1.2">\n'
+var cyclonedxTail = '\n</bom>\n'
+var diagonal,tree,svg,duration,root
+var treeData = []
+var vul_data = []
+var cve_data = []
+/* Allow these to override URL and other validators */
+var DefaultEmpty = {"NONE":true,"NOASSERTION":true}
+document.onkeydown = function(evt) {
+    evt = evt || window.event;
+    if (evt.keyCode == 27) {
+	$('.coverpage').hide()
+    }
+}
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
 function usage_privacy() {
     var msg = $('#privacy').html()
     var title = 'Usage and Privacy'
@@ -10,7 +33,8 @@ function readFile(input) {
     var reader = new FileReader();
     reader.readAsText(file);
     reader.onload = function() {
-	//console.log(reader.result);	
+	//console.log(reader.result);
+	sessionStorage.setItem("reader",reader.result)
 	parse_spdx(reader.result)
     };
     
@@ -24,7 +48,7 @@ function readFile(input) {
 function do_example() {
     $('#main_table .cmp_table').remove()
     add_cmp()
-    var inputs = $('#main_table :input').not('select')
+    var inputs = $('#main_table :input').not('select').not('.spdx-lite-field').not('.prefill')
     inputs.map(i => inputs[i].value = inputs[i].placeholder)
     var sample_array=[{PackageName:"Windows Embedded Standard 7 with SP1 patches",
 		       PackageVersion:"3.0", SupplierName:"Microsoft"},
@@ -49,6 +73,8 @@ function do_example() {
     for(var i=0; i<dcmps.length; i++) {
 	update_cmp_names(dcmps[i])
     }
+    /* Some unique field to update */
+    $('input[type="datetime-local"]').val(new Date().toISOString().replace("Z",""))    
     generate_spdx()
     setTimeout(function() {
 	vul_data.push({vul_part:3,cve:'CVE-2019-2697',cvss_score:8.1})
@@ -106,7 +132,10 @@ function parse_spdx(spdxin) {
 		  khash[field.name].length+" values")
 	    return false
 	}
-	field.value = khash[field.name][0]
+	if(field.type == "datetime-local")
+	    field.value = new Date(khash[field.name][0]).toISOString().replace("Z","")
+	else 
+	    field.value = khash[field.name][0] || ""
     }
     var plen = khash["PackageName"].length
     /* Create empty array for supplier name and supplier type comes from 
@@ -182,8 +211,11 @@ function fill_component(xcmps,xIndex) {
 	    khash['SupplierName'][xIndex] = supplierdata.join(":")
 	}else
 	    khash['SupplierType'][xIndex] = "Organization"
-	
-	field.value = khash[field.name][xIndex] 
+	if(field.name in khash)
+	    field.value = khash[field.name][xIndex] || ""
+	else 
+	    console.log("Skipping field "+field.name+", with value "+field.value)
+
     }
 }
 function update_cmp_names(w) {
@@ -254,14 +286,35 @@ function verify_inputs() {
 	       add_invalid_feedback(inputs[i],"")
 		return false
 	    }
+	} else {
+	    if($(inputs[i])[0].type == "datetime-local") {
+		/* Not really necessary but we will do to be safe */
+		if(isNaN(parseInt(new Date($(inputs[i])[0].value).getTime()))) {
+		    add_invalid_feedback(inputs[i],"")
+		    return false
+		}
+	    }
+	    else if(!$(inputs[i])[0].checkValidity()) {
+		if($(inputs[i])[0].value.toUpperCase() in DefaultEmpty)
+		    return true
+	       add_invalid_feedback(inputs[i],"")
+		return false
+	    }
 	}
     }
     return true
 }
 function safeXML(inText) {
-    return inText.replace(/[&<>"'`=\/]/g, function (s) {
+    return inText.replace(/[&<>"'`=]/g, function (s) {
 	return "&#" + s.charCodeAt(0) + ";";
-    });
+    })
+}
+function safeTXT(inText) {
+    inText = inText.replace(/^\s+/,'').replace(/\s+$/,'')
+    if(inText.toUpperCase() in DefaultEmpty) return inText.toUpperCase()
+    return "<text>"+inText.replace(/[&<>"'`=\/]/g, function (s) {
+	return "&#" + s.charCodeAt(0) + ";";
+    })+"</text>"
 }
 function validateXML(inXML) {
     var p = new DOMParser();
@@ -273,6 +326,15 @@ function validateXML(inXML) {
 	swal("Good job!", "XML Validates right, you can use it", "success");
     }
 }
+function spdx_lite_content(el,hkey) {
+    var spdx_lite_add = ""
+    el.each(function() {
+	if(this.name in hkey)
+	    spdx_lite_add += this.name+": "+this.value+"\n"
+    })
+    return spdx_lite_add
+}
+
 
 function generate_spdx() {
     if(verify_inputs() == false)
@@ -297,9 +359,16 @@ function generate_spdx() {
     spdx += thead.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
     hinputs = $('.pcmp_table tr :input')
     var pc = {}
-    hinputs.map(i => { hkey[hinputs[i].name] =  safeXML(hinputs[i].value);
-		       pc[hinputs[i].name] = safeXML(hinputs[i].value);
-		     })
+    hinputs.map(i => {
+	if(!hinputs[i].value) return "dummy";
+	if(hinputs[i].type.toLowerCase() == "textarea") {
+	    hkey[hinputs[i].name] = safeTXT(hinputs[i].value)
+	    pc[hinputs[i].name] = safeTXT(hinputs[i].value);
+	} else {
+	    hkey[hinputs[i].name] =  safeXML(hinputs[i].value);
+	    pc[hinputs[i].name] = safeXML(hinputs[i].value);
+	}
+    })
     fjson.PrimaryComponent = pc
     var tpcmp = $('#spdx .pcomponent').html()
 
@@ -321,7 +390,10 @@ function generate_spdx() {
     swid += swidcmp
     cyclonedx += cyclonedxcmp 
     spdx += tpcmp.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
+    spdx += spdx_lite_content($('.pcmp_table .spdx-lite-field'),hkey)
     //console.log(spdx)
+    /* Add option spdx_lite_fields */
+    
     var cmps = $('#main_table .cmp_table')
     var tpcmps = ""
     var swidpcmps = ""
@@ -348,7 +420,14 @@ function generate_spdx() {
 	}
 	cyclonedxdeps += $('.cyclonedxdeps').val().replace('$ChildBomRef',hkey['ChildBomRef'])
 	    .replace('$ParentBomRef',hkey['ParentBomRef'])
-	hinputs.map(i => hkey[hinputs[i].name] = safeXML(hinputs[i].value))
+	hinputs.map( i => {
+	    if(!hinputs[i].value) return "dummy";
+	    if(hinputs[i].type.toLowerCase() == "textarea") {
+		hkey[hinputs[i].name] = safeTXT(hinputs[i].value)
+	    } else {
+		hkey[hinputs[i].name] =  safeXML(hinputs[i].value);
+	    }
+	})
 	alltreeData.push({props: JSON.stringify(hkey),name: hkey['PackageName'],parent: parent,
 			  children:[]})	
 	fjson.Packages.push(hkey)
@@ -356,6 +435,7 @@ function generate_spdx() {
 	hkey['UrlPackageName'] = encodeURIComponent(hkey['PackageName'])
 	tpcmp = $('#spdx .subcomponent').html()
 	tpcmps += tpcmp.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
+	tpcmps += spdx_lite_content($(cmps[i]).find('.spdx-lite-field'),hkey)
 	swidpcmps += $('#swid .cmp').val().
 	    replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
 	cyclonedxpcmps += $('#cyclonedx .cyclonedxcmp').val().
@@ -389,24 +469,6 @@ function generate_uuid() {
     for (var i=0; i<3; i++)
 	uuid += '-'+Math.random().toString(16).substr(2,4)
     return uuid+'-'+Math.random().toString(16).substr(2,12)
-}
-var fjson
-var swidHead = '<?xml version="1.0" ?>\n<SwidTags>'
-var swidTail = '\n</SwidTags>'
-var cyclonedxHead = '<?xml version="1.0"?>\n<bom '+
-    'serialNumber="urn:uuid:'+generate_uuid()+'" \n'+
-    'version = "1" '+
-    'xmlns="http://cyclonedx.org/schema/bom/1.2">\n'
-var cyclonedxTail = '\n</bom>\n'
-var diagonal,tree,svg,duration,root
-var treeData = []
-var vul_data = []
-var cve_data = []
-document.onkeydown = function(evt) {
-    evt = evt || window.event;
-    if (evt.keyCode == 27) {
-	$('.coverpage').hide()
-    }
 }
 function draw_graph() {
     var margin = {top: 20, right: 120, bottom: 20, left: 120},

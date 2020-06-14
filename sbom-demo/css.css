@@ -1,4 +1,27 @@
 /* SBOM-Demo css.css version 2.6 */
+
+.not_required {
+    border: 2px dashed lightgrey;
+}
+.circletext {
+    color: black;
+    border: 2px solid black;
+    padding: 2px 5px 2px 8px;
+    border-radius: 12px;
+}
+a.circletext.spdx-lite {
+    padding: 2px 8px 2px 8px;
+}
+.blackbody .circletext {
+    color: white;
+    border: 2px solid white;
+    padding: 2px 5px 2px 8px;
+    border-radius: 12px;
+}
+.circletext:hover {
+    text-decoration: none;
+    color: #222;
+}
 .swal-title:not(:last-child) {
     margin-bottom: 2px;
 }
@@ -18,6 +41,8 @@
 }
 .octicon-mark-github {
     width: 24px;
+    padding-bottom: 6px;
+    padding-left: 2px;
 }
 .mauto {
     width: auto;
