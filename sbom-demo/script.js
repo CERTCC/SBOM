@@ -24,17 +24,24 @@ $(function () {
     $('[data-toggle="tooltip"]').tooltip()
 })
 function usage_privacy() {
-    var msg = $('#privacy').html()
-    var title = 'Usage and Privacy'
-    swal(title,msg)
+    $('#info_privacy').modal()
 }
 function readFile(input) {
     var file = input.files[0];
+    console.log(file)
+    if(('name' in file) &&
+       (file.name.toLowerCase().indexOf('.xlsx') == file.name.length - 5)) {
+	var xl2json = new ExcelToJSON()
+	xl2json.parseExcel(file)
+	swal("Experimental!", "Excel file upload is still being tested check console",
+	     "warning")
+	return
+    }
     var reader = new FileReader();
     reader.readAsText(file);
     reader.onload = function() {
 	//console.log(reader.result);
-	sessionStorage.setItem("reader",reader.result)
+	//sessionStorage.setItem("reader",reader.result)
 	parse_spdx(reader.result)
     };
     
@@ -119,12 +126,12 @@ function parse_spdx(spdxin) {
 	}else
 	    khash['CreatorType'][0] = "Organization"
     }
-    var headkeys = $('#main_table .thead :input')
+    var headkeys = $('#main_table .thead :input').not("has-default")
     for(var i=0; i< headkeys.length; i++) {
 	var field = headkeys[i]
 	if(!(field.name in khash)) {
 	    alert("Data does not contain required field "+field.name)
-	    invalid_feedback(field,"No header data found for "+headdata[i])
+	    add_invalid_feedback(field,"No header data found for "+headkeys[i])
 	    return false
 	}
 	if(khash[field.name].length != 1) {
@@ -153,7 +160,7 @@ function parse_spdx(spdxin) {
 	if(khash["CRelationship"][i].indexOf(khash['SPDXID']+' DESCRIBES ') > -1) {
 	    pIndex = i
 	    /* Capture parent SPDXID */
-	    khash["PSPDXID"] = khash["CSPDXID"][i]
+	    //khash["PSPDXID"] = khash["CSPDXID"][i]
 	}
 	else
 	    add_cmp()
@@ -353,7 +360,13 @@ function generate_spdx() {
     var hinputs = $('#main_table > tbody > tr > td > :input')
     var hkey = {}
     hinputs.map(i => hkey[hinputs[i].name] = safeXML(hinputs[i].value))
-    hkey['Created'] = new Date($('[name="Created"]').val()).toISOString().replace(/\.\d{3}Z/,'Z')
+    try {
+	hkey['Created'] = new Date($('[name="Created"]').val())
+	    .toISOString().replace(/\.\d{3}Z/,'Z')
+    }catch(err) { /* Safari nonsense date parser */
+	hkey['Created'] = new Date($('[name="Created"]').val().split(",")[0])
+	    .toISOString().replace(/\.\d{3}Z/,'Z')
+    }
     fjson.Header = hkey
     var thead = $('#spdx .head').html()
     spdx += thead.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
@@ -896,9 +909,129 @@ https://olbat.github.io/nvdcve/CVE-2017-1000369.json
 	console.log( "second success" );
     }).fail(function() {
 	console.log( "error" );
-	
 	add_invalid_feedback(w,"Warning: CVE not found")
     }).always(function() {
 	console.log( "complete" );
     });
 }
+
+var ExcelToJSON = function() {
+    this.parseExcel = function(file) {
+	var reader = new FileReader()
+	var dexcel = {Document: false,Components:false}
+
+	reader.onload = function(e) {
+	    var data = e.target.result
+	    var workbook = XLSX.read(data, {
+		type: 'binary'
+	    })
+	    workbook.SheetNames.forEach(function(sheetName) {
+		// Here is your object
+		console.log(sheetName)
+		var XL_row_object = XLSX.utils
+		    .sheet_to_row_object_array(workbook.Sheets[sheetName])
+		var json_object = JSON.stringify(XL_row_object)
+		console.log(JSON.parse(json_object))
+		dexcel[sheetName] = JSON.parse(json_object)
+		//jQuery( '#xlx_json' ).val( json_object )
+	    })
+	    if((dexcel['Document'] === false) ||(dexcel['Components'] === false)) {
+		swal("Sorry!","An Error ocurred while processing Excel file. Please use"+
+		     " provided template and do not change sheet names to headers", "error")
+		return
+	    }
+	    if('Instructions' in dexcel) /* Remote instructions reduce memory if we can */
+		delete dexcel['Instructions']
+	    FillFromExcel(dexcel)
+	}
+
+	reader.onerror = function(ex) {
+	    swal("Sorry!","An Error ocurred while processing your file, check console","error")
+	    console.log(ex)
+	}
+
+	reader.readAsBinaryString(file)
+    }
+}
+function FillFromExcel(dexcel) {
+    console.log(dexcel)
+    for(var i=0; i< dexcel.Document.length; i++) {
+	var td = dexcel.Document[i]
+	var key = td["Field Name"]
+	var val = td["Field Value"]
+	key in khash ? khash[key].push(val) : khash[key] = [val]
+    }
+    khash['SPDXID'] = ["SPDXRef-DOCUMENT"]
+    for(var i=0; i< dexcel.Components.length; i++) {
+	var td = dexcel.Components[i]
+	for (var [key, val] of Object.entries(td))
+	    key in khash ? khash[key].push(val) : khash[key] = [val]
+	khash['SPDXID'][i+1] = 'SPDXRef-'+khash['PackageName'][i].replace(/[^A-Z0-9\.\-]/gi,'-')
+    }
+    /* SPDXID is repeated collect components SPDXID*/
+    khash["CSPDXID"] = khash["SPDXID"].splice(1)
+    /* Remove <text> HTML stuff from Comment */
+    if('CreatorComment' in khash)
+	khash["CreatorComment"][0] = $('<div>').html(khash["CreatorComment"][0]).text()
+    if("Created" in khash) {
+	var d = new Date()
+	if(isNaN(Date.parse(khash.Created))) {
+	    console.log("Date provided is overriden due to compatibility")
+	} else {
+	    d = new Date(Date.parse(khash.Created))
+	}
+	$('[name="Created"]').val(d.toISOString().replace("Z",""))
+    }
+    var headkeys = $('#main_table .thead :input').not(".has-default")
+    for(var i=0; i< headkeys.length; i++) {
+        var field = headkeys[i]
+	if(!(field.name in khash)) {
+	    alert("Data does not contain required field "+field.name)
+	    add_invalid_feedback(field,"No header data found for "+headkeys[i])
+	    return false
+	}
+	if(khash[field.name].length != 1) {
+	    alert("Cardinality error for "+field.name+", only one value allowed found "+
+		  khash[field.name].length+" values")
+	    return false
+	}
+	if(field.type != "datetime-local") /* DAte is already filled up there */
+	    field.value = khash[field.name][0] || ""
+    }
+    var plen = khash["PackageName"].length
+    /* Create empty array for supplier name and supplier type comes from 
+       PackageSupplier: $SupplierType: $SupplierName 
+       variables */
+    khash["CRelationship"] = khash['Relationship']
+    khash['Relationship'] = Array(plen).fill("Included")
+    khash['ParentComponent'] = Array(plen).fill("PrimaryComponent")
+    khash['Relationship'][0] = 'Primary'
+    khash['PackageSupplier'] = khash['SupplierType'].map((x,i) => x+':'+
+					       khash['SupplierName'][i])
+
+    /* Default primary component index is 0, search for DESCRIBES  */
+    var pIndex = 0
+    for(var i=0; i< plen; i++) {
+	if(khash["Relationship"][i] == "Primary") {
+	    pIndex = i
+	    /* Capture parent SPDXID */
+	    khash["PSPDXID"] = khash["CSPDXID"][i]
+	}
+	else
+	    add_cmp()
+    }	
+    /* SPDXID */
+    var pcmps = $('#main_table .pcmp_table :input')
+    fill_component(pcmps,pIndex)
+    var cmps = $('#main_table .cmp_table')
+    //console.log(pIndex)
+    for(var i=0; i< plen; i++) {
+	if(i == pIndex) /* Primary component already handled earlier */
+	    continue
+	var scmps = $(cmps[i-1]).find(":input")
+	if(scmps.length > 0) 
+	    fill_component(scmps,i)
+    }
+    update_relationships(khash,pIndex)    
+}
+

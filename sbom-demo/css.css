@@ -1,5 +1,19 @@
 /* SBOM-Demo css.css version 2.6 */
+.full_modal-dialog {
+    width: 98% !important;
+    height: 92% !important;
+    min-width: 98% !important;
+    min-height: 92% !important;
+    max-width: 98% !important;
+    max-height: 92% !important;
+    padding: 0 !important;
+}
 
+.full_modal-content {
+    height: 99% !important;
+    min-height: 99% !important;
+    max-height: 99% !important;
+}
 .not_required {
     border: 2px dashed lightgrey;
 }
@@ -17,6 +31,9 @@ a.circletext.spdx-lite {
     border: 2px solid white;
     padding: 2px 5px 2px 8px;
     border-radius: 12px;
+}
+.blackbody .circletext:hover {
+    color: #bebebe;
 }
 .circletext:hover {
     text-decoration: none;
@@ -178,6 +195,41 @@ pre {
     font-size: 14px;
     border: 2px solid grey;
 }
-#spdx,#swid,#cyclonedx,#privacy {
+#spdx,#swid,#cyclonedx {
     display:none;
+}
+.blackbody .rct {
+    stroke: white;
+}
+.rct {
+    stroke: #222;
+    stroke-opacity: 0.5;
+    stroke-width: 4;
+    stroke-dasharray: 10 5;
+}
+.rctb {
+    stroke-width: 2;
+    stroke-dasharray: none;
+}
+.rtext {
+    text-decoration: underline;
+    font-size: 24px;
+}
+.final_product {
+    fill: rgba(33,0,33,0.3);
+}
+.final_product_title {
+    fill: rgba(148,2,211,0.2); 
+}
+.cpart {
+    fill: rgba(12,0,33,0.3);
+}
+.cpart_title {
+    fill: rgba(148,2,211,0.4); 
+}
+.part {
+    fill: rgba(30,12,255,0.3);
+}
+.part_title {
+    fill: rgba(148,2,211,0.2); 
 }

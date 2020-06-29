@@ -26,9 +26,13 @@
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js" async defer
 	    integrity="sha384-RIQuldGV8mnjGdob13cay/K1AJa+LR7VKHqSXrrB5DPGryn4pMUXRLh92Ev8KlGF"
 	    crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="css.css?v=1592101102">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js" async defer>
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js" async defer>
+    </script>
+    <link rel="stylesheet" href="css.css?v=1593438090">
   </head>
-  <body>
+  <body class="blackbody">
     <div id="scontent" class="coverpage">
       <button class="btn text-muted text-center btn-warning float-right" type="button"
 	      onclick="$('.coverpage').hide()">Close</button>
@@ -88,10 +92,12 @@
 	      <th colspan="2" class="text-center">
 		<img src="cert_tweet_logo.jpg" class="cert-tweet" alt="CERT Logo"
 		     onclick="$('body').toggleClass('blackbody')"/>
-		SBOM data collection with sample
-		<a href="javascript:void(0)" onclick="do_example()">Example</a>
-		| 
-		<a href="javascript:void(0)" onclick="$('#spdxload').click()">Import SPDX</a>
+		SBOM Generator for POC II efforts &nbsp;
+		<a href="javascript:void(0)" onclick="do_example()">Load Example</a>
+		| &nbsp; 
+		<a href="javascript:void(0)" onclick="$('#spdxload').click()"
+		  alt="Import SPDX or Excel file using the base template">
+		  Import SPDX/Excel</a>
 		<br />
 		<div class="tright">
 		  <a href="javascript:void(0)" class="circletext"
@@ -111,20 +117,20 @@
 	    <tr style="display:none" class="thead">
 	      <td>SPDXVersion</td>
 	      <td>
-		<input class="form-control" type="text" name="SPDXVersion"
+		<input class="form-control has-default" type="text" name="SPDXVersion"
 		       value="SPDX-2.1"  placeholder="SPDX-2.1">
 	      </td>
 	    </tr>
 	    <tr style="display:none" class="thead">
 	      <td>DataLicense</td>
 	      <td>
-		<input class="form-control" type="text" name="DataLicense" placeholder="CC0-1.0"
-		       value="CC0-1.0">
+		<input class="form-control has-default" type="text" name="DataLicense"
+		       placeholder="CC0-1.0" value="CC0-1.0">
 	      </td>
 	    </tr>
 	    <tr style="display:none" class="thead">
 	      <td>SPDXID</td>
-	      <td><input class="form-control" type="text" name="SPDXID" 
+	      <td><input class="form-control has-default" type="text" name="SPDXID" 
 			 value="SPDXRef-DOCUMENT"
 			 placeholder="SPDXRef-DOCUMENT">
 	      </td>
@@ -755,11 +761,71 @@
 	</div>
       </div>
     </div>
-    <div id="privacy">
-      This site generates SPDX, SWID and CycloneDX format SBOMs from user provided data. Fields with dashed border are optional. SPDX-Lite is supported.
-      None of the data you enter or simulate is sent or stored at the server.  The data is solely on the client-side.  The tools to generate SPDX,SWID and CycloneDX can all work even if your browser is disconnected from the network after loading the website.
-    </div>
-    <script src="script.js?v=1592101330"></script>
+    <div class="modal" tabindex="-1" role="dialog" id="info_privacy">
+      <div class="modal-dialog full_modal-dialog" role="document">
+	<div class="modal-content full_modal-content">
+	  <div class="modal-header">
+	    <h5 class="modal-title w-100 text-center">About SBOM Generator Software </h5>
+	    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+	      <span aria-hidden="true">&times;</span>
+	    </button>
+	  </div>
+	  <div class="modal-body">
+	    <div>
+	      <h4> Introduction</h4>
+	      This site generates SPDX, SWID and CycloneDX format SBOMs from user provided data.
+	      Fields with dashed border are optional.
+	      <a href="https://spdx.github.io/spdx-spec/appendix-VIII-SPDX-Lite/SPDX-Lite"
+		 target="_blank">SPDX-Lite</a> fields are supported. This is in support of
+	      Healthcare PoC (Proof of Concept) II efforts from
+	      <a href="https://ntia.gov/sbom/"> NTIA</a> in collaboration with a number of
+	      organizations.
+	      <p />
+	      <h4>Usage Instructions</h4>
+	      <ul>
+		<li>Click on top right corner CERT icon to toggle "Dark Mode" on and off</li>
+		<li> Click on <i>"Load Example"</i> for simple view of a
+		  SPDX lite loaded into three formats (SPDX, SWID and CycloneDX)
+		  as well as a simple SVG graph representation of the Components and their
+		  relationship</li>
+		<li> SPDX Lite fields are supported, click on the <i>"SPDX Lite"</i> button to
+		  activate it.  SPDX Lite fields are set to default values when NOT in use.
+		<li>You can import SPDX in text format (RDFa) and Excel sheet in conformance to
+		  <a href="SBOM-Template.xlsx">Template</a> are supported as inputs.</li>
+		<li> When loading Excel file, use the template as provided. DO NOT delete the
+		  top header rows OR rename the sheets.  Edit only the fields relevant
+		  for your product which is to be documented in SBOM formats. 
+		</li>
+		<li> Excel file does not support specifying relationships. The template builds
+		  a flat tree which you can later modify once data is laoded. Once you have
+		  generated SPDX, you can import it again using the SPDX file to maintain
+		  relationships and do edits/modification to your product SBOM.
+		</li>
+		<li>The github repo is provided in the link on the top right corner. Fork and use
+		  it as you please.  We only ask that you credit <a href="https://www.cert.org">
+		    CERT</a> when publishing this software in an Intranet or external Internet.
+		</li>
+		<li>
+		  In Graph mode, you can click on Vulnerabilities to edit - add or remove vulnerbailities per foand remove all the vulnerabilities using the "-" minus sign  and then click Simulate to see plain graph no vulnerability simulated and no red dots.
+		</li>
+		
+		<li>
+		  If you have trouble using this software or desire a feature, please reach out
+		  using Github's <i>"Issues"</i>.
+		</li>
+	       </ul>
+	      
+	      <h4>Privacy and Data Security</h4>
+	      None of the data you enter or simulate is sent or stored at the server.  The data is solely on the client-side.  The tools to generate SPDX,SWID and CycloneDX can all work even if your browser is disconnected from the network after loading the website.
+	    </div>
+
+	  </div>
+	  <div class="modal-footer">
+	  </div>
+	</div>
+      </div>
+    </div>    
+    <script src="script.js?v=1593437749"></script>
     <input type="file" onchange="readFile(this)" style="opacity:0.1" id="spdxload">
   </body>
 </html>
