@@ -1,5 +1,5 @@
 # SBOM-examples
-Examples and proof-of-concept for Software Bill of Materials (SBOM) code &amp; data
+Examples and proof-of-concept for Software Bill of Materials (SBOM) code &amp; data.  Youc an visit a live demo at [SBOM demo](https://sbom.democert.org/sbom/)
 
 You can learn more about SBOM efforts at [https://www.ntia.gov/sbom](https://www.ntia.gov/sbom). There are several links to community developed documents that can be found in the NTIA's website.
 

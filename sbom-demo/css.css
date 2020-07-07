@@ -1,4 +1,8 @@
 /* SBOM-Demo css.css version 2.6 */
+#load_example {
+    padding: 1px;
+    height: auto;
+}
 .full_modal-dialog {
     width: 98% !important;
     height: 92% !important;
