@@ -1,5 +1,5 @@
 /* SBOM-Demo script.js version 3.8  */
-const _version = 3.8
+const _version = 4.1
 var fjson
 var swidHead = '<?xml version="1.0" ?>\n<SwidTags>'
 var swidTail = '\n</SwidTags>'
@@ -12,6 +12,7 @@ var diagonal,tree,svg,duration,root
 var treeData = []
 var vul_data = []
 var cve_data = []
+var alltreeData = []
 /* Allow these to override URL and other validators */
 var DefaultEmpty = {"NONE":true,"NOASSERTION":true}
 document.onkeydown = function(evt) {
@@ -23,17 +24,39 @@ document.onkeydown = function(evt) {
 $(function () {
     $('[data-toggle="tooltip"]').tooltip()
 })
+function clearall() {
+    swal({title: "Are you sure?",
+	  text: "All Entries will be cleared!",
+	  icon: "warning",
+	  buttons: true,
+	  dangerMode: true,
+	 }).then((willDelete) => {
+	     if (willDelete) 
+		 location.reload()
+	 })
+}
+function enablecbom(w){
+    $(w).closest("table").find(".form-control").prop("disabled",w.checked)
+    if(w.checked) 
+	$(w).closest("table").find("tr.childbomtr").show()
+    else
+	$(w).closest("table").find("tr.childbomtr").hide()	
+}
+function add_sbom() {
+    swal("Experimental!","Attaching an SBOM as a child SBOM is being tested","warning")
+    return
+}
 function usage_privacy() {
     $('#info_privacy').modal()
 }
-function readFile(input) {
+function readFile(input,mchild) {
     var file = input.files[0];
-    console.log(file)
     if(('name' in file) &&
        (file.name.toLowerCase().indexOf('.xlsx') == file.name.length - 5)) {
+	console.log("Excel")
 	var xl2json = new ExcelToJSON()
 	xl2json.parseExcel(file)
-	swal("Experimental!", "Excel file upload is still being tested check console",
+	swal("Experimental!", "Excel file upload, Please update relationship as the first step!",
 	     "warning")
 	return
     }
@@ -42,16 +65,50 @@ function readFile(input) {
     reader.onload = function() {
 	//console.log(reader.result);
 	//sessionStorage.setItem("reader",reader.result)
-	parse_spdx(reader.result)
-    };
-    
+	if(mchild == "childbom") {
+	    //swal("Experimental!", "Child bom has been loaded!",
+	    //"warning")
+	    var qt = $(input).closest('table')
+	    if($(qt).find(".PackageName").val()  != "") {
+		swal({
+		title: "Are you sure?",
+		text: "Adding a childbom, to an existing element will delete current email and all child components to this element!",
+		icon: "warning",
+		buttons: true,
+		dangerMode: true,
+	    }).then((willDelete) => {
+		if (willDelete) {
+		    var componentId = qt.attr("id")
+		    recurse_remove(componentId)
+		    parse_spdx(reader.result,mchild,input)
+		} else {
+		    swal("Your SBOM is left as is!");
+		}
+	    });
+	    }
+	
+	} else 
+	    parse_spdx(reader.result,mchild,input)
+	return
+    }
     reader.onerror = function() {
 	console.log(reader.error);
 	alert("File reading as text failed")
-    };
-    
+    }
 }
-    
+
+function recurse_remove(componentId) {
+    $("select.ParentComponent").each(function(i,s) {
+	if($(s).val() == componentId) {
+	    var ctable = $(s).closest('table')
+	    var childcId = ctable.attr('id')
+	    console.log("Removing this table "+childcId)
+	    ctable.remove()
+	    return recurse_remove(childcId)
+	}
+    })
+}
+
 function do_example() {
     $('#main_table .cmp_table').remove()
     add_cmp()
@@ -93,9 +150,18 @@ function do_example() {
     
 }
 var khash = {}
-function parse_spdx(spdxin) {
+function parse_spdx(spdxin,mchild,input) {
     if(spdxin == "")
 	spdxin = $('pre#pspdx').text()
+    /* This is filled if there is a childbom being inserted  with class mclass*/
+    var mcurrent_rowid = 0
+    var mclass = ""
+    if(mchild == "childbom") {
+	console.log("Trying Child bom")
+	mcurrent_rowid = parseInt($(input).closest('table').prop("id").replace("Component",""))
+	console.log(mcurrent_rowid )
+	mclass = "childbom"
+    }
     spdxin = spdxin.replace(/\n\s+/g,'\n')
     khash = {}
     var lines = spdxin.split("\n")
@@ -126,24 +192,29 @@ function parse_spdx(spdxin) {
 	}else
 	    khash['CreatorType'][0] = "Organization"
     }
-    var headkeys = $('#main_table .thead :input').not("has-default")
-    for(var i=0; i< headkeys.length; i++) {
-	var field = headkeys[i]
-	if(!(field.name in khash)) {
-	    alert("Data does not contain required field "+field.name)
-	    add_invalid_feedback(field,"No header data found for "+headkeys[i])
-	    return false
+    /* Check for child SBOM if not fill the top SBOM*/
+    if(mcurrent_rowid == 0) {
+	/* Process the head as normal */
+	var headkeys = $('#main_table .thead :input').not("has-default")
+	for(var i=0; i< headkeys.length; i++) {
+	    var field = headkeys[i]
+	    if(!(field.name in khash)) {
+		alert("Data does not contain required field "+field.name)
+		add_invalid_feedback(field,"No header data found for "+headkeys[i])
+		return false
+	    }
+	    if(khash[field.name].length != 1) {
+		alert("Cardinality error for "+field.name+", only one value allowed found "+
+		      khash[field.name].length+" values")
+		return false
+	    }
+	    if(field.type == "datetime-local")
+		field.value = new Date(khash[field.name][0]).toISOString().replace("Z","")
+	    else 
+		field.value = khash[field.name][0] || ""
 	}
-	if(khash[field.name].length != 1) {
-	    alert("Cardinality error for "+field.name+", only one value allowed found "+
-		  khash[field.name].length+" values")
-	    return false
-	}
-	if(field.type == "datetime-local")
-	    field.value = new Date(khash[field.name][0]).toISOString().replace("Z","")
-	else 
-	    field.value = khash[field.name][0] || ""
-    }
+    } 
+
     var plen = khash["PackageName"].length
     /* Create empty array for supplier name and supplier type comes from 
        PackageSupplier: $SupplierType: $SupplierName 
@@ -156,6 +227,8 @@ function parse_spdx(spdxin) {
     khash['Relationship'][0] = 'Primary'
     /* Default primary component index is 0, search for DESCRIBES  */
     var pIndex = 0
+    /* Default components to fill starts with 0 unless a child bom is selected */
+    
     for(var i=0; i< plen; i++) {
 	if(khash["CRelationship"][i].indexOf(khash['SPDXID']+' DESCRIBES ') > -1) {
 	    pIndex = i
@@ -163,49 +236,57 @@ function parse_spdx(spdxin) {
 	    //khash["PSPDXID"] = khash["CSPDXID"][i]
 	}
 	else
-	    add_cmp()
+	    add_cmp(mclass)
     }	
     /* SPDXID */
-    
-    var pcmps = $('#main_table .pcmp_table :input')
-    fill_component(pcmps,pIndex)
     var cmps = $('#main_table .cmp_table')
+    console.log(mcurrent_rowid)
+    if(mcurrent_rowid > 0) {
+	/* Child BOM is true , process this for current field */
+	console.log(mcurrent_rowid,pIndex)
+	$('#Component'+mcurrent_rowid).attr("data-spdxid",khash["CSPDXID"][pIndex])
+	var bcmps = $('#Component'+mcurrent_rowid+' :input')
+	cmps = $('#main_table .cmp_table.childbom')
+	fill_component(bcmps,pIndex)
+	/* Remove the parent SPDXID of this as the one for the full document */
+	khash["PSPDXID"] = "DEFAULT"
+    } else {
+	/* No child bom involved, fill the primary component with pindex element */
+	$('#main_table .pcmp_table').attr("data-spdxid",khash["CSPDXID"][pIndex])
+	var pcmps = $('#main_table .pcmp_table :input')
+	fill_component(pcmps,pIndex)
+    }
+    /* Remove the primary Index Element from CSPDXID References */
+    var jkeys = Object.keys(khash)
+    for(var j=0; j< jkeys.length; j++) {
+	if(Array.isArray(khash[jkeys[j]]))
+	   if(khash[jkeys[j]].length == plen)
+	       khash[jkeys[j]].splice(pIndex,1)
+    }
+
     //console.log(pIndex)
-    for(var i=0; i< plen; i++) {
-	if(i == pIndex) /* Primary component already handled earlier */
-	    continue
-	var scmps = $(cmps[i-1]).find(":input")
+    for(var i=0; i<  khash["CSPDXID"].length; i++) {
+	$(cmps[i]).attr("data-spdxid",khash["CSPDXID"][i])
+	var scmps = $(cmps[i]).find(":input")
 	if(scmps.length > 0) 
 	    fill_component(scmps,i)
     }
-    update_relationships(khash,pIndex)
+    update_relationships_psuedo(cmps)
 }
-function update_relationships(khash,xIndex) {
-    /* Use relationships and parent index to find all relevant relationships */
-    if($('#main_table .cmp_table').length + 1 != khash["CRelationship"].length) {
+function update_relationships_psuedo(cmps) {
+    if(cmps.length != khash["CRelationship"].length) {
 	console.log("Relationship could not be updated")
 	alert("Error loading SPDX into form Relationships are not matching")
 	return false
     }
-    var documentSPDXId = khash["SPDXID"][0]
-    var relationships = khash["CRelationship"]
-    var componentIds = khash["CSPDXID"]
-    for(var i=0; i<relationships.length; i++) {
-	/* "SPDXRef-DOCUMENT DESCRIBES SPDXRef-INFUSION" */
-	var parts = relationships[i].split(/\s+/)
-	if(parts[1] == "DESCRIBES") /* Primary component continue */
-	    continue
-	if(parts[0] == khash["PSPDXID"]) /* Parent is the primary component default behavior */
-	    continue
-	/* Find how other things are related "SPDXRef-Java-8 CONTAINS SPDXRef-Spring-Framework" */
-	var myindex = khash["CSPDXID"].findIndex(x=> x == parts[0])
-	if(myindex > 0) {
-	    $($('#main_table .cmp_table')[i-1]).
-		find(".ParentComponent").val("Component"+String(myindex))
-	}
+    for(var i=0; i<cmps.length; i++) {
+	var parts = khash["CRelationship"][i].split(/\s+/)
+	var componentid = $("table[data-spdxid='"+parts[0]+"']").attr("id")
+	console.log(componentid,parts[0])
+	if (componentid)
+	    $(cmps[i]).find(".ParentComponent").val(componentid)
     }
-    /* Trigger all renaming of components */
-    $('[name="PackageName"]').trigger('change')	
+    $('[name="PackageName"]').trigger('change')
 }
 
 function fill_component(xcmps,xIndex) {
@@ -214,7 +295,7 @@ function fill_component(xcmps,xIndex) {
 	/* PackageSupplier: $SupplierType: $SupplierName  */
 	var supplierdata =  khash['PackageSupplier'][xIndex].split(":")
 	if(supplierdata.length > 1) {
-	    khash['SupplierType'][xIndex] = [supplierdata.shift()]
+	    khash['SupplierType'][xIndex] = supplierdata.shift()
 	    khash['SupplierName'][xIndex] = supplierdata.join(":")
 	}else
 	    khash['SupplierType'][xIndex] = "Organization"
@@ -241,11 +322,22 @@ function update_cmp_names(w) {
     }
 }
 
-function add_cmp() {
+function add_cmp(mclass) {
     $('#main_table .cmp_table .btn-danger').remove()
-    var clen = $('.cmp_table').length
+    var clen = 0
+    $('.cmp_table').each(function(i,c) {
+	var xId = parseInt($(c).attr("id").replace("Component","")) + 1
+	if(xId > clen) /* Find max */
+	    clen = xId
+    },0)
+    if(clen < 1)
+	clen = $('.cmp_table').length
+    //console.log(clen)
     var dx = $('.cmp_template').html().replace(/d_count/g,clen)
     $('#main_table .tail').before('<tr><td colspan="2">'+dx+'</td></tr>')
+    if(mclass) {
+	$('#Component'+clen).addClass(mclass)
+    }
     var pcs = $('#main_table .ParentComponent')
     for(var i=0; i<pcs.length; i++) {
 	var id = $(pcs[i]).closest('table').attr('id')
@@ -363,7 +455,7 @@ function generate_spdx() {
     try {
 	hkey['Created'] = new Date($('[name="Created"]').val())
 	    .toISOString().replace(/\.\d{3}Z/,'Z')
-    }catch(err) { /* Safari nonsense date parser */
+    } catch(err) { /* Safari nonsense date parser */
 	hkey['Created'] = new Date($('[name="Created"]').val().split(",")[0])
 	    .toISOString().replace(/\.\d{3}Z/,'Z')
     }
@@ -392,6 +484,7 @@ function generate_spdx() {
     hkey['PrimaryBomRef'] = hkey['BomRef']
     $('.pcmp_table').data('BomRef', hkey['BomRef'])
     var PrimaryPackageName = hkey['PackageName']
+    hkey['EscPrimaryPackageName'] = hkey['EscPackageName']    
     var swidcmp = $('#swid .cmp').val()
 	.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
     var cyclonedxcmp = $('#cyclonedx .cyclonedxpcmp').val()
@@ -415,6 +508,7 @@ function generate_spdx() {
     for(var i=0; i< cmps.length; i++) {
 	hkey = {}
 	hkey['PrimaryPackageName'] = PrimaryPackageName
+	hkey['EscPrimaryPackageName'] = PrimaryPackageName.replace(/[^A-Z0-9\.\-]/gi,'-')
 	var parent = PrimaryPackageName
 	hkey['BomRef'] = generate_uuid()
 	hkey['ChildBomRef'] = hkey['BomRef']
@@ -427,7 +521,7 @@ function generate_spdx() {
 	    var parentTable = $(cmps[i]).find(".ParentComponent").val()
 	    var parentPackageName = $('#'+parentTable).find('input[name="PackageName"]').val()
 	    parent = parentPackageName
-	    hkey['PrimaryPackageName'] = parentPackageName.replace(/[^A-Z0-9\.\-]/gi,'-')
+	    hkey['EscPrimaryPackageName'] = parentPackageName.replace(/[^A-Z0-9\.\-]/gi,'-')
 	    var index = parseInt(parentTable.replace('Component',''))-1
 	    hkey['ParentBomRef'] = $('#'+parentTable).data('BomRef')
 	}
@@ -757,6 +851,7 @@ function simulate_vuls() {
 		vul_data=[]
 		$('circle').removeData().css({fill: 'rgb(255,255,255)'}).removeClass('has_vul')
 		$('#vul_table').modal('hide')
+		$('#heatmap').remove()
 		return
 	    }
 	}
@@ -1023,15 +1118,22 @@ function FillFromExcel(dexcel) {
     /* SPDXID */
     var pcmps = $('#main_table .pcmp_table :input')
     fill_component(pcmps,pIndex)
-    var cmps = $('#main_table .cmp_table')
+    $('#main_table .pcmp_table').attr("data-spdxid",khash["CSPDXID"][pIndex])    
+    /* Remove the primary Index Element from CSPDXID References */
+    var jkeys = Object.keys(khash)
+    for(var j=0; j< jkeys.length; j++) {
+	if(Array.isArray(khash[jkeys[j]]))
+	   if(khash[jkeys[j]].length == plen)
+	       khash[jkeys[j]].splice(pIndex,1)
+    }
+    var cmps = $('#main_table .cmp_table')    
     //console.log(pIndex)
-    for(var i=0; i< plen; i++) {
-	if(i == pIndex) /* Primary component already handled earlier */
-	    continue
-	var scmps = $(cmps[i-1]).find(":input")
+    for(var i=0; i<  khash["CSPDXID"].length; i++) {
+	$(cmps[i]).attr("data-spdxid",khash["CSPDXID"][i])
+	var scmps = $(cmps[i]).find(":input")
 	if(scmps.length > 0) 
 	    fill_component(scmps,i)
     }
-    update_relationships(khash,pIndex)    
+    update_relationships_psuedo(cmps)
 }
 

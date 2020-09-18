@@ -1,4 +1,15 @@
 /* SBOM-Demo css.css version 2.6 */
+input:disabled {
+    border: 1px dotted green !important;
+}
+.btn-attach {
+    background-color: #133c13;
+    border-color: #133c13;
+    color: #fff;
+}
+.btn-attach:hover{
+    color: #fefefe;
+}
 #load_example {
     padding: 1px;
     height: auto;

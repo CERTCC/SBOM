@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title> SBOM Demo - an online SBOM generator </title>
+    <title>SwiftBOM- SBOM generator for demo and PoCs</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="referrer" content="no-referrer" />
     <meta name="generator" content="SBOM-Demo 1.1 - SEI" />
@@ -20,17 +20,13 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
 	    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
 	    crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"  async defer
-	    integrity="sha384-N8EP0Yml0jN7e0DcXlZ6rt+iqKU9Ck6f1ZQ+j2puxatnBq4k9E8Q6vqBcY34LNbn"
-	    crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js" async defer
-	    integrity="sha384-RIQuldGV8mnjGdob13cay/K1AJa+LR7VKHqSXrrB5DPGryn4pMUXRLh92Ev8KlGF"
-	    crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js" async defer>
+    <script src="d3.min.js"  async defer></script>
+    <script src="sweetalert.min.js" async defer></script>
+    <script src="jszip.js" async defer>
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js" async defer>
+    <script src="xlsx.js" async defer>
     </script>
-    <link rel="stylesheet" href="css.css?v=1593525971">
+    <link rel="stylesheet" href="css.css?v=1598753894">
   </head>
   <body class="blackbody">
     <div id="scontent" class="coverpage">
@@ -100,6 +96,10 @@
 		  Import SPDX/Excel</a>
 		<br />
 		<div class="tright">
+		  <button class="btn btn-danger" onclick="clearall()">
+		    Clear
+		  </button>
+		  
 		  <a href="javascript:void(0)" class="circletext"
  		     onclick="usage_privacy()"
 		     title="(generates a SPDX-2.1 under CC0-1.0 license with default
@@ -349,6 +349,7 @@
 			title="Add an included software component">
 		  + Add Component
 		</button>
+		&nbsp;
 		<div class="float-right">
 		  <button class="btn btn-warning"
 			  data-toggle="tooltip" data-placement="top"
@@ -387,9 +388,21 @@
 		<select name="ParentComponent" class="form-control ParentComponent">
 		  <option value="PrimaryComponent">PrimaryComponent</option>
 		</select>
+		<br />
+		<input type="checkbox" class="cbomenable not_required"
+		       onclick="enablecbom(this)"/>
+		Child BOM exists
 	      </td>
 	    </tr>
-	    
+	    <tr class="childbomtr" style="display:none">
+	      <td>
+		Child BOM SPDX
+	      </td>
+	      <td>
+		<input type="file" class="cbomfile not_required"
+		       onchange="readFile(this,'childbom')" />
+	      </td>
+	    </tr>
 	    <tr> 
 	      <td>Component Name</td>
 	      <td>
@@ -625,7 +638,7 @@
 	PackageComment:  &lt;text&gt;PURL is pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
 	PackageVersion: $PackageVersion
 	PackageSupplier: $SupplierType: $SupplierName
-	Relationship: SPDXRef-$PrimaryPackageName CONTAINS SPDXRef-$EscPackageName
+	Relationship: SPDXRef-$EscPrimaryPackageName CONTAINS SPDXRef-$EscPackageName
 	PackageDownloadLocation: $PackageDownloadLocation
 	FilesAnalyzed: $FilesAnalyzed
 	PackageLicenseConcluded: $PackageLicenseConcluded
@@ -825,8 +838,8 @@
 	</div>
       </div>
     </div>    
-    <script src="script.js?v=1593437749"></script>
-    <input type="file" onchange="readFile(this)" style="opacity:0.1" id="spdxload">
+    <script src="script.js?v=1600457925"></script>
+    <input type="file" onchange="readFile(this,false)" style="opacity:0.01" id="spdxload">
   </body>
 </html>
 
