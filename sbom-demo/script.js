@@ -68,6 +68,7 @@ function readFile(input,mchild) {
 	if(mchild == "childbom") {
 	    //swal("Experimental!", "Child bom has been loaded!",
 	    //"warning")
+	    clear_vuls()
 	    var qt = $(input).closest('table')
 	    if($(qt).find(".PackageName").val()  != "") {
 		swal({
@@ -700,6 +701,11 @@ function update(source) {
 	/* resort vul_data by cvss_Score */
 	setTimeout(simulate_vuls,1000)
     }
+}
+
+function clear_vuls() {
+    vul_data = []
+    $('#heatmap').remove()
 }
 
 function showdiv(d) {
