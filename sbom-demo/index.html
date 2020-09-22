@@ -20,13 +20,13 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
 	    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
 	    crossorigin="anonymous"></script>
-    <script src="d3.min.js"  async defer></script>
+    <script src="d3.min.js" async defer></script>
     <script src="sweetalert.min.js" async defer></script>
     <script src="jszip.js" async defer>
     </script>
     <script src="xlsx.js" async defer>
     </script>
-    <link rel="stylesheet" href="css.css?v=1598753894">
+    <link rel="stylesheet" href="css.css?v=1600741197">
   </head>
   <body class="blackbody">
     <div id="scontent" class="coverpage">
@@ -36,32 +36,29 @@
       <button class="btn btn-danger float-right d-none" type="button" id="vuls"
 	      onclick="vul_modal()">Vulnerabilities</button>
       <h4>
-	<a href="javascript:void(0)" onclick="showme('#spdxcontent',0)">
-	  SPDX
-	</a>
+	<a href="javascript:void(0)" class="cactive"
+	   onclick="showme('#spdxcontent',0,'.scontent',this)">
+	  SPDX</a>
 	<a id="dlspdx" class="dldr" title="Download SPDX">
 	  &darr;
 	</a>
 	| 
-	<a href="javascript:void(0)" onclick="showme('#swidcontent',0)">
-	  SWID
-	</a>
+	<a href="javascript:void(0)" onclick="showme('#swidcontent',0,'.scontent',this)">
+	  SWID</a>
 	<a id="dlswid" class="dldr" title="Download SWID">
 	  &darr;
 	</a>
 	| 
-	<a href="javascript:void(0)" onclick="showme('#cyclonedxcontent',0)">
-	  CycloneDX
-	</a>
+	<a href="javascript:void(0)" onclick="showme('#cyclonedxcontent',0,'.scontent',this)">
+	  CycloneDX</a>
 	<a id="dlcyclonedx" class="dldr" title="Download CycleDX">
 	  &darr;
 	</a>
 	| 
-	<a href="javascript:void(0)"
-	   onclick="showme('#graph',1)">
+	<a href="javascript:void(0)" onclick="showme('#graph',1,'.scontent',this)">
 	  Graph
 	</a>
-	<a id="dlsvg" class="dldr" style="display:none"
+	<a id="dlsvg" class="dldr" onclick="download_png()" href="javascript:void(0)"
 	   title="Download SVG Graph">
 	  &darr;
 	</a>	
@@ -69,14 +66,30 @@
       <div id="spdxcontent" class="scontent">
       </div>
       <div id="swidcontent" class="scontent">
-	<textarea id="swidtext">
+	<textarea id="swidtext" class="dlContent">
 	</textarea>
       </div>
       <div id="cyclonedxcontent" class="scontent">
-	<textarea id="cyclonedxtext">
+	<p style="margin:0px; margin-top:-20px;">
+	  <a href="javascript:void(0)" class="childtab cactive" data-phref="dlcyclonedx"
+	     data-ptype="xml" onclick="showme('#cyclonedxXML',0,'.dlContent',this)">
+	    XML
+	  </a>   &nbsp; 
+	  <a href="javascript:void(0)" class="childtab" data-phref="dlcyclonedx"
+	     data-ptype="json" onclick="showme('#cyclonedxJSON',0,'.dlContent',this)">
+	    JSON
+	  </a>
+	</p>
+	
+	<textarea id="cyclonedxXML" class="dlContent">
 	</textarea>
+	<textarea id="cyclonedxJSON" class="dlContent" style="display:none">
+	</textarea>	
       </div>
       <div id="graph" class="scontent">
+	<button id="saveButton" style="display:none"
+		>Export my D3 visualization to PNG</button>
+
       </div>     
     </div>
     <div class="container">
@@ -137,7 +150,8 @@
 	    </tr>
 	    <tr class="thead">
 	      <td>Document Name</td>
-	      <td><input class="form-control" type="text" name="DocumentName" placeholder="ACME-INFUSION-1.0-SBOM-DRAFT">
+	      <td><input class="form-control" type="text" name="DocumentName" id="DocumentName"
+			 placeholder="ACME-INFUSION-1.0-SBOM-DRAFT">
 	      </td>
 	    </tr>
 	    <tr class="thead">
@@ -838,8 +852,9 @@
 	</div>
       </div>
     </div>    
-    <script src="script.js?v=1600459420"></script>
+    <script src="script.js?v=1600744101"></script>
     <input type="file" onchange="readFile(this,false)" style="opacity:0.01" id="spdxload">
+    <canvas id="canvas"></canvas>
   </body>
 </html>
 

@@ -3,11 +3,61 @@ const _version = 4.1
 var fjson
 var swidHead = '<?xml version="1.0" ?>\n<SwidTags>'
 var swidTail = '\n</SwidTags>'
+var cyclonedxSerialNumber = "urn:uuid:"+generate_uuid()
 var cyclonedxHead = '<?xml version="1.0"?>\n<bom '+
-    'serialNumber="urn:uuid:'+generate_uuid()+'" \n'+
+    'serialNumber="'+cyclonedxSerialNumber+'" \n'+
     'version = "1" '+
     'xmlns="http://cyclonedx.org/schema/bom/1.2">\n'
 var cyclonedxTail = '\n</bom>\n'
+var cyclonedxJson = {
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.2",
+    "serialNumber": cyclonedxSerialNumber,
+    "version": 1,
+    "metadata": {},
+    "components": [],
+    "dependencies": []
+}
+var $metadata = {
+    "timestamp": "$Created",
+    "authors": [
+	{"name": "$Creator"},
+    ],
+    "component": {
+	"type": "device",
+	"bom-ref": "$BomRef",
+	"name": "$PackageName",
+	"purl": "pkg:hex/$UrlPackageName@$PackageVersion",
+	"supplier": {
+	    "name": "$SupplierName"
+	},
+	"manufacture": {
+	    "name": "$SupplierName"
+	},
+	"version": "$PackageVersion"
+    }
+}
+var $component = {
+	"type": "library",
+	"bom-ref": "$BomRef",
+	"name": "$PackageName",
+	"purl": "pkg:hex/$UrlPackageName@$PackageVersion",
+	"supplier": {
+	    "name": "$SupplierName"
+	},
+	"manufacture": {
+	    "name": "$SupplierName"
+	},
+	"version": "$PackageVersion"
+}
+var $dependency = {
+    "ref": "$ChildBomRef",
+    "dependsOn": [
+	"$ParentBomRef"
+    ]
+}
+
+
 var diagonal,tree,svg,duration,root
 var treeData = []
 var vul_data = []
@@ -50,17 +100,22 @@ function usage_privacy() {
     $('#info_privacy').modal()
 }
 function readFile(input,mchild) {
-    var file = input.files[0];
-    if(('name' in file) &&
-       (file.name.toLowerCase().indexOf('.xlsx') == file.name.length - 5)) {
+    var file = input.files[0]
+    if(!('name' in file)) {
+	swal("Failed!","Failed to collect file name on upload!","error")
+	return
+    }
+    if (file.name.toLowerCase().endsWith(".xlsx") ||
+	file.name.toLowerCase().endsWith(".xls")) {
 	console.log("Excel")
 	var xl2json = new ExcelToJSON()
 	xl2json.parseExcel(file)
-	swal("Experimental!", "Excel file upload, Please update relationship as the first step!",
+	swal("Experimental!", "Excel file upload, Please update relationship"+
+	     " before generating SBOM!",
 	     "warning")
 	return
     }
-    var reader = new FileReader();
+    var reader = new FileReader()
     reader.readAsText(file);
     reader.onload = function() {
 	//console.log(reader.result);
@@ -86,10 +141,17 @@ function readFile(input,mchild) {
 		    swal("Your SBOM is left as is!");
 		}
 	    });
+	    }	
+	} else {
+	    if (file.name.toLowerCase().endsWith(".xml")) {
+		/* Assume Cyclone DX or SWID */
 	    }
-	
-	} else 
+	    else if (file.name.toLowerCase().endsWith(".json")) {
+		/* Assume Cyclone DX JSON */
+	    }	    
+	    else 
 	    parse_spdx(reader.result,mchild,input)
+	}
 	return
     }
     reader.onerror = function() {
@@ -490,6 +552,7 @@ function generate_spdx() {
 	.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
     var cyclonedxcmp = $('#cyclonedx .cyclonedxpcmp').val()
 	.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
+    cyclonedxJson['metadata'] = JSON.parse(JSON.stringify($metadata).replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")]))
     alltreeData.push({props:JSON.stringify(hkey),
 		      name: hkey['PackageName'],
 		      parent: null,
@@ -500,12 +563,13 @@ function generate_spdx() {
     spdx += spdx_lite_content($('.pcmp_table .spdx-lite-field'),hkey)
     //console.log(spdx)
     /* Add option spdx_lite_fields */
-    
+    cyclonedxJson['components'] = []
+    cyclonedxJson['dependencies'] = []
     var cmps = $('#main_table .cmp_table')
     var tpcmps = ""
     var swidpcmps = ""
     var cyclonedxpcmps = ""
-    var cyclonedxdeps = ""    
+    var cyclonedxdeps = ""
     for(var i=0; i< cmps.length; i++) {
 	hkey = {}
 	hkey['PrimaryPackageName'] = PrimaryPackageName
@@ -528,6 +592,10 @@ function generate_spdx() {
 	}
 	cyclonedxdeps += $('.cyclonedxdeps').val().replace('$ChildBomRef',hkey['ChildBomRef'])
 	    .replace('$ParentBomRef',hkey['ParentBomRef'])
+	var xdepJ = JSON.parse(JSON.stringify($dependency).
+			       replace('$ChildBomRef',hkey['ChildBomRef'])
+			       .replace('$ParentBomRef',hkey['ParentBomRef']))
+	cyclonedxJson['dependencies'].push(xdepJ)
 	hinputs.map( i => {
 	    if(!hinputs[i].value) return "dummy";
 	    if(hinputs[i].type.toLowerCase() == "textarea") {
@@ -546,6 +614,8 @@ function generate_spdx() {
 	tpcmps += spdx_lite_content($(cmps[i]).find('.spdx-lite-field'),hkey)
 	swidpcmps += $('#swid .cmp').val().
 	    replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
+	var xcmpsJ = JSON.parse(JSON.stringify($component).replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")]))
+	cyclonedxJson['components'].push(xcmpsJ)
 	cyclonedxpcmps += $('#cyclonedx .cyclonedxcmp').val().
 	    replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])	
     }
@@ -556,7 +626,8 @@ function generate_spdx() {
 	cyclonedxTail
     //alert(spdx)
     $('#swidtext').val(swid)
-    $('#cyclonedxtext').val(cyclonedx)
+    $('#cyclonedxXML').val(cyclonedx)
+    $('#cyclonedxJSON').val(JSON.stringify(cyclonedxJson,null,2))    
     $('#spdxcontent').html('<pre id="pspdx">'+spdx+'</pre>').show()
     $('#scontent').show()
     var spdxdl = $('pre#pspdx').text().replace(/\n\s+/g,'\n')
@@ -571,6 +642,8 @@ function generate_spdx() {
 			   + encodeURIComponent(cyclonedx))        
     treeData=grapharray(alltreeData)
     draw_graph()
+    $('.cactive').removeClass('cactive')
+    $('#scontent a:first-of-type').addClass('cactive')
 }
 function generate_uuid() {
     var uuid = Math.random().toString(16).substr(2,8)
@@ -578,6 +651,8 @@ function generate_uuid() {
 	uuid += '-'+Math.random().toString(16).substr(2,4)
     return uuid+'-'+Math.random().toString(16).substr(2,12)
 }
+
+
 function draw_graph() {
     var margin = {top: 20, right: 120, bottom: 20, left: 120},
 	width = 960 - margin.right - margin.left,
@@ -603,9 +678,11 @@ function draw_graph() {
     update(root)
 
     d3.select(self.frameElement).style("height", "500px");
+    /* SVG download is unique 
     var svgx = $('svg')[0].outerHTML
     $('#dlsvg').attr('href','data:image/svg+xml;charset=utf-8,'+ encodeURIComponent(svgx))
     $('#dlsvg').attr('download','SVG-'+timefile()+'.svg')
+    */
 }
 function update(source) {
     var i = 0
@@ -813,9 +890,29 @@ function timefile() {
 	d.getHours() + "-" + d.getMinutes()
     
 }
-function showme(divid,vul_flag) {
-    $('.scontent').hide()
-    $(divid).show()
+function showme(showdiv,vul_flag,hidediv,el) {
+    $(hidediv).hide()
+    $(showdiv).show()
+    $('.cactive').removeClass('cactive')
+    if($(el).hasClass('childtab')) {
+	if($(el).data('phref')) {
+	    /* Upodate PArent HREF properties if present */
+	    var parenthref = $(el).data('phref')
+	    var parentext = $(el).data('ptype')
+	    console.log("Updating "+parenthref+":"+parentext)
+	    var fname = $('#'+parenthref).attr('download')
+	    fname = fname.replace(/\.[^\.]+$/,'.'+parentext)
+	    $('#'+parenthref).attr('download',fname)
+	    var ndata = $(showdiv).val()
+	    $('#'+parenthref).attr('href','data:text/plain;charset=utf-8,'
+				   + encodeURIComponent(ndata))
+	}
+    } else {	
+	$(showdiv).find('textarea').hide()
+	$(showdiv).find('textarea:first-of-type').show()
+	$(showdiv).find('.childtab:first-of-type').addClass('cactive')
+    }
+    $(el).addClass('cactive')
     if(vul_flag)
 	$('#vuls').removeClass('d-none')
     else
@@ -1141,5 +1238,57 @@ function FillFromExcel(dexcel) {
 	    fill_component(scmps,i)
     }
     update_relationships_psuedo(cmps)
+}
+
+function triggerDownload (imgURI) {
+	var evt = new MouseEvent('click', {
+	    view: window,
+	    bubbles: false,
+	    cancelable: true
+	})
+    var a = document.createElement('a');
+    var dfname = $('#DocumentName').val().replace(/[^A-Z0-9\-]/gi,'_')
+    a.setAttribute('download', dfname+'.png');
+    a.setAttribute('href', imgURI);
+    a.setAttribute('target', '_blank');
+    a.dispatchEvent(evt);
+    
+}
+
+function download_png() {
+    var linecolor = 'white'
+    var fillcolor = 'black'
+    if($('body').hasClass('blackbody')) {
+	linecolor = '#222'
+	fillcolor = 'white'
+	$('text').css({fill: '#ffffff'})
+    } else {
+	$('svg').css({background: '#f5f5f5'})
+    }
+    $('.link').css({'fill-opacity': 0.01,stroke: fillcolor,'stroke-width':'6px'})
+    $('circle').css({fill: '#B0C4DE',stroke: fillcolor,'stroke-width':'6px'})
+    $('circle.has_vul').css({fill:'red',stroke: fillcolor,'stroke-width':'6px'})
+    var svg = document.querySelector('svg')
+    var canvas = document.getElementById('canvas')
+    var width = $('svg').width()*2
+    var height = $('svg').height()*2
+    canvas.width = width
+    canvas.height = height
+    var ctx = canvas.getContext('2d');
+    var data = (new XMLSerializer()).serializeToString(svg);
+    var DOMURL = window.URL || window.webkitURL || window;
+    var img = new Image();
+    var svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+    var url = DOMURL.createObjectURL(svgBlob);
+    img.onload = function () {
+	ctx.clearRect ( 0, 0, width, height );
+	ctx.drawImage(img, 0, 0,width,height);
+	DOMURL.revokeObjectURL(url);
+	var imgURI = canvas
+	    .toDataURL('image/png')
+	    .replace('image/png', 'image/octet-stream');
+	triggerDownload(imgURI);
+    }
+  img.src = url;
 }
 
