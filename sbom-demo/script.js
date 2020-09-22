@@ -1,5 +1,5 @@
-/* SBOM-Demo script.js version 3.8  */
-const _version = 4.1
+/* SBOM-Demo script.js version 4.2 ability to export CyconeDX as JSON and Graph as PNG  */
+const _version = 4.2
 var fjson
 var swidHead = '<?xml version="1.0" ?>\n<SwidTags>'
 var swidTail = '\n</SwidTags>'
@@ -502,6 +502,8 @@ function generate_spdx() {
     if(verify_inputs() == false)
 	return
     /* Clear past vuls */
+    if(window.safari)
+	$('#dlsvg').hide()
     //$('.vul_template').not('.d-none').remove()
     $('.scontent').hide()
     var spdx = ""
@@ -1241,18 +1243,20 @@ function FillFromExcel(dexcel) {
 }
 
 function triggerDownload (imgURI) {
-	var evt = new MouseEvent('click', {
-	    view: window,
-	    bubbles: false,
-	    cancelable: true
-	})
+    var evt = new MouseEvent('click', {
+	view: window,
+	bubbles: false,
+	cancelable: true
+    })
     var a = document.createElement('a');
     var dfname = $('#DocumentName').val().replace(/[^A-Z0-9\-]/gi,'_')
-    a.setAttribute('download', dfname+'.png');
-    a.setAttribute('href', imgURI);
-    a.setAttribute('target', '_blank');
+    a.setAttribute('download', dfname+'.png')
+    a.setAttribute('href', imgURI)
+    a.setAttribute('target', '_blank')
     a.dispatchEvent(evt);
-    
+    $('#dlsvg').attr('href',imgURI)
+    $('#dlsvg').attr('download',dfname+'.png')
+    $('#dlsvg').attr('onclick',null)
 }
 
 function download_png() {
@@ -1277,8 +1281,8 @@ function download_png() {
     var ctx = canvas.getContext('2d');
     var data = (new XMLSerializer()).serializeToString(svg);
     var DOMURL = window.URL || window.webkitURL || window;
-    var img = new Image();
-    var svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+    var img = new Image()
+    var svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'})
     var url = DOMURL.createObjectURL(svgBlob);
     img.onload = function () {
 	ctx.clearRect ( 0, 0, width, height );
@@ -1286,9 +1290,9 @@ function download_png() {
 	DOMURL.revokeObjectURL(url);
 	var imgURI = canvas
 	    .toDataURL('image/png')
-	    .replace('image/png', 'image/octet-stream');
-	triggerDownload(imgURI);
+	    .replace('image/png', 'image/octet-stream')
+	triggerDownload(imgURI)
     }
-  img.src = url;
+  img.src = url
 }
 
