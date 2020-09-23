@@ -1,5 +1,5 @@
 /* SBOM-Demo script.js version 4.2 ability to export CyconeDX as JSON and Graph as PNG  */
-const _version = 4.2
+const _version = 4.3
 var fjson
 var swidHead = '<?xml version="1.0" ?>\n<SwidTags>'
 var swidTail = '\n</SwidTags>'
@@ -27,10 +27,8 @@ var $metadata = {
 	"type": "device",
 	"bom-ref": "$BomRef",
 	"name": "$PackageName",
-	"purl": "pkg:hex/$UrlPackageName@$PackageVersion",
-	"supplier": {
-	    "name": "$SupplierName"
-	},
+	"purl": "pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion",
+	"supplier": "$SupplierName",
 	"manufacture": {
 	    "name": "$SupplierName"
 	},
@@ -38,25 +36,23 @@ var $metadata = {
     }
 }
 var $component = {
-	"type": "library",
-	"bom-ref": "$BomRef",
-	"name": "$PackageName",
-	"purl": "pkg:hex/$UrlPackageName@$PackageVersion",
-	"supplier": {
-	    "name": "$SupplierName"
-	},
-	"manufacture": {
-	    "name": "$SupplierName"
-	},
-	"version": "$PackageVersion"
+    "type": "library",
+    "bom-ref": "$BomRef",
+    "name": "$PackageName",
+    "purl": "pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion",
+    "supplier": "$SupplierName",
+    "manufacture": {
+	"name": "$SupplierName"
+    },
+    "version": "$PackageVersion"
 }
 var $dependency = {
-    "ref": "$ChildBomRef",
+    "ref": "$MyBomRef",
     "dependsOn": [
-	"$ParentBomRef"
+	"$DependBomRef"
     ]
 }
-
+var cyclonedxdeps = ''
 
 var diagonal,tree,svg,duration,root
 var treeData = []
@@ -99,6 +95,28 @@ function add_sbom() {
 function usage_privacy() {
     $('#info_privacy').modal()
 }
+function OBJtoXML(obj) {
+    var xml = '';
+    for (var prop in obj) {
+	xml += obj[prop] instanceof Array ? '' : "<" + prop + ">";
+	if (obj[prop] instanceof Array) {
+	    for (var array in obj[prop]) {
+		xml += "<" + prop + ">";
+		xml += OBJtoXML(new Object(obj[prop][array]));
+		xml += "</" + prop + ">\n";
+	    }
+	} else if (typeof obj[prop] == "object") {
+	    xml += OBJtoXML(new Object(obj[prop]));
+	} else {
+	    xml += obj[prop];
+	}
+	xml += obj[prop] instanceof Array ? '' : "</" + prop + ">";
+    }
+    var xml = xml.replace(/<\/?[0-9]{1,}>/g, '');
+    return xml
+}
+
+
 function readFile(input,mchild) {
     var file = input.files[0]
     if(!('name' in file)) {
@@ -174,6 +192,7 @@ function recurse_remove(componentId) {
 
 function do_example() {
     $('#main_table .cmp_table').remove()
+    $('#main_table .nmk').remove()
     add_cmp()
     var inputs = $('#main_table :input').not('select').not('.spdx-lite-field').not('.prefill')
     inputs.map(i => inputs[i].value = inputs[i].placeholder)
@@ -397,10 +416,11 @@ function add_cmp(mclass) {
 	clen = $('.cmp_table').length
     //console.log(clen)
     var dx = $('.cmp_template').html().replace(/d_count/g,clen)
-    $('#main_table .tail').before('<tr><td colspan="2">'+dx+'</td></tr>')
+    $('#main_table .tail').before('<tr class="nmk"><td colspan="2">'+dx+'</td></tr>')
     if(mclass) {
 	$('#Component'+clen).addClass(mclass)
     }
+    $('#Component'+clen).attr('data-bomref',generate_uuid())
     var pcs = $('#main_table .ParentComponent')
     for(var i=0; i<pcs.length; i++) {
 	var id = $(pcs[i]).closest('table').attr('id')
@@ -496,7 +516,26 @@ function spdx_lite_content(el,hkey) {
     })
     return spdx_lite_add
 }
-
+function populate_dependencies(mybomref,componentId) {
+    var xmlp = '<dependency ref="$MyBomRef">\n'.replace("$MyBomRef",mybomref)
+    var xmlu = ''
+    var index = cyclonedxJson['dependencies'].push({ref: mybomref, dependsOn: [] })
+    index = index -1
+    var t = $('#main_table .cmp_table .ParentComponent').filter(function() {
+	if($(this).val() == componentId) {
+	    var cBomRef = $(this).closest(".cmp_table").data("bomref")
+	    if(cBomRef) {
+		cyclonedxJson['dependencies'][index]['dependsOn'].push(cBomRef)
+		xmlu = xmlu + '  <dependency ref="$DepBomRef"/>\n'.replace("$DepBomRef",cBomRef)
+	    }
+	}
+	return false
+    })
+    if(cyclonedxJson['dependencies'][index]['dependsOn'].length < 1) 
+	cyclonedxJson['dependencies'].pop()
+    else
+	cyclonedxdeps = cyclonedxdeps+xmlp+xmlu+"</dependency>\n"
+}
 
 function generate_spdx() {
     if(verify_inputs() == false)
@@ -547,7 +586,7 @@ function generate_spdx() {
     /* Used in CycloneDX only */
     hkey['BomRef'] = generate_uuid()
     hkey['PrimaryBomRef'] = hkey['BomRef']
-    $('.pcmp_table').data('BomRef', hkey['BomRef'])
+    $('.pcmp_table').attr('data-bomref', hkey['BomRef'])
     var PrimaryPackageName = hkey['PackageName']
     hkey['EscPrimaryPackageName'] = hkey['EscPackageName']    
     var swidcmp = $('#swid .cmp').val()
@@ -566,38 +605,35 @@ function generate_spdx() {
     //console.log(spdx)
     /* Add option spdx_lite_fields */
     cyclonedxJson['components'] = []
-    cyclonedxJson['dependencies'] = []
+    cyclonedxdeps = ''
+    populate_dependencies(hkey['PrimaryBomRef'],"PrimaryComponent")
+
     var cmps = $('#main_table .cmp_table')
     var tpcmps = ""
     var swidpcmps = ""
     var cyclonedxpcmps = ""
-    var cyclonedxdeps = ""
     for(var i=0; i< cmps.length; i++) {
 	hkey = {}
 	hkey['PrimaryPackageName'] = PrimaryPackageName
 	hkey['EscPrimaryPackageName'] = PrimaryPackageName.replace(/[^A-Z0-9\.\-]/gi,'-')
 	var parent = PrimaryPackageName
-	hkey['BomRef'] = generate_uuid()
-	hkey['ChildBomRef'] = hkey['BomRef']
-	hkey['ParentBomRef'] = hkey['PrimaryBomRef']
-	$(cmps[i]).data('BomRef', hkey['BomRef'])
-	hkey['ParentBomRef'] = generate_uuid()	
+	hkey['BomRef'] = $(cmps[i]).data('bomref') || generate_uuid()
+	hkey['DependBomRef'] = hkey['PrimaryBomRef']
+	hkey['MyBomRef'] = hkey['BomRef']
 	hinputs = $(cmps[i]).find(':input').not('button')
+	var xdepJ = []
 	if($(cmps[i]).find(".ParentComponent").val() != "PrimaryComponent") {
 	    /* This is a child relationship of level 2 or more */
 	    var parentTable = $(cmps[i]).find(".ParentComponent").val()
 	    var parentPackageName = $('#'+parentTable).find('input[name="PackageName"]').val()
 	    parent = parentPackageName
 	    hkey['EscPrimaryPackageName'] = parentPackageName.replace(/[^A-Z0-9\.\-]/gi,'-')
-	    var index = parseInt(parentTable.replace('Component',''))-1
-	    hkey['ParentBomRef'] = $('#'+parentTable).data('BomRef')
+	} else {
+	    var tid = $(cmps[i]).attr("id")
+	    populate_dependencies(hkey['MyBomRef'],tid)
 	}
-	cyclonedxdeps += $('.cyclonedxdeps').val().replace('$ChildBomRef',hkey['ChildBomRef'])
-	    .replace('$ParentBomRef',hkey['ParentBomRef'])
-	var xdepJ = JSON.parse(JSON.stringify($dependency).
-			       replace('$ChildBomRef',hkey['ChildBomRef'])
-			       .replace('$ParentBomRef',hkey['ParentBomRef']))
-	cyclonedxJson['dependencies'].push(xdepJ)
+	if(xdepJ.length > 0)
+	    cyclonedxJson['dependencies'].push(xdepJ)
 	hinputs.map( i => {
 	    if(!hinputs[i].value) return "dummy";
 	    if(hinputs[i].type.toLowerCase() == "textarea") {

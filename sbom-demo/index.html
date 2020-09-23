@@ -374,8 +374,8 @@
 		  &nbsp; 
 		  <button class="btn btn-primary" onclick="generate_spdx()"
 			  data-toggle="tooltip" data-placement="top"
-			  title="Generate SPDX from Form data">		    
-		    Generate SPDX/SWID
+			  title="Generate SBOM varying formats">		    
+		    Generate SBOM
 		  </button>
 		</div>
 		
@@ -689,14 +689,9 @@
 	    </author>
 	  </authors>
 	  <component type="device" bom-ref="$BomRef">
-	    <description>
-	      $PackageName
-	    </description>
 	    <name>$PackageName</name>
-	    <purl>pkg:hex/$UrlPackageName@$PackageVersion</purl>
-	    <supplier>$SupplierName</supplier>
-	    <manufacture>$SupplierName</manufacture>
 	    <version>$PackageVersion</version>
+	    <purl>pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion</purl>
 	  </component>
 	  <manufacture>
 	    <name>$SupplierName</name>
@@ -707,33 +702,23 @@
 	    </contact>
 	  </manufacture>
 	  <supplier>
-	    <name>$SupplierName</name>
-	    <url></url>
-	    <contact>
-              <name>$SupplierName</name>
-              <email></email>
-	    </contact>
+	    <name>
+	      $SupplierName
+	    </name>
 	  </supplier>
 	</metadata>
       </textarea>
       <!-- Other Components -->
       <textarea class="cyclonedxcmp">
 	<component type="library" bom-ref="$BomRef">
-	  <description>
-	    $PackageName
-	  </description>
+	  <publisher>$SupplierName</publisher>
 	  <name>$PackageName</name>
-	  <purl>pkg:hex/$UrlPackageName@$PackageVersion</purl>
-	  <supplier>$SupplierName</supplier>
-	  <manufacture>$SupplierName</manufacture>
 	  <version>$PackageVersion</version>
+	  <purl>pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion</purl>
 	</component>
       </textarea>
-      <!-- Dependencies -->
+      <!-- Dependencies currently hard coded in populate_dependencies routine-->
       <textarea class="cyclonedxdeps jhide">
-	<dependency ref="$ChildBomRef">
-	  <dependency ref="$ParentBomRef"/>
-	</dependency>
       </textarea>
     </div>
     <div id="mpopup"
@@ -852,7 +837,7 @@
 	</div>
       </div>
     </div>    
-    <script src="script.js?v=1600784202"></script>
+    <script src="script.js?v=1600830453"></script>
     <input type="file" onchange="readFile(this,false)" style="opacity:0.01" id="spdxload">
     <canvas id="canvas" style="display:none"></canvas>
   </body>
