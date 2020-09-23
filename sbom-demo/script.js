@@ -1,5 +1,6 @@
 /* SBOM-Demo script.js version 4.2 ability to export CyconeDX as JSON and Graph as PNG  */
 const _version = 4.3
+/* Internal JSON representation */
 var fjson
 var swidHead = '<?xml version="1.0" ?>\n<SwidTags>'
 var swidTail = '\n</SwidTags>'
