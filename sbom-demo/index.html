@@ -22,7 +22,7 @@
 	    crossorigin="anonymous"></script>
     <script src="d3.min.js" async defer></script>
     <script src="sweetalert.min.js" async defer></script>
-    <script src="jszip.js" async defer>
+    <script src="jszip.min.js" async defer>
     </script>
     <script src="xlsx.js" async defer>
     </script>
@@ -58,10 +58,16 @@
 	<a href="javascript:void(0)" onclick="showme('#graph',1,'.scontent',this)">
 	  Graph
 	</a>
-	<a id="dlsvg" class="dldr" onclick="download_png()" href="javascript:void(0)"
+	<a id="dlsvg" class="dldr" onclick="make_png(false,null)" href="javascript:void(0)"
 	   title="Download SVG Graph">
 	  &darr;
-	</a>	
+	</a>
+	| 
+	<a id="dlzip" class="dldr" onclick="download_zip()" href="javascript:void(0)"
+	   title="Download Zipped SBOM package">
+	  &#8484; &darr; &nbsp;
+	</a>
+	
       </h4>
       <div id="spdxcontent" class="scontent">
       </div>
@@ -87,9 +93,7 @@
 	</textarea>	
       </div>
       <div id="graph" class="scontent">
-	<button id="saveButton" style="display:none"
-		>Export my D3 visualization to PNG</button>
-
+	<input type="hidden" id="pngblob">
       </div>     
     </div>
     <div class="container">
@@ -837,7 +841,7 @@
 	</div>
       </div>
     </div>    
-    <script src="script.js?v=1600830524"></script>
+    <script src="script.js?v=1600981731"></script>
     <input type="file" onchange="readFile(this,false)" style="opacity:0.01" id="spdxload">
     <canvas id="canvas" style="display:none"></canvas>
   </body>

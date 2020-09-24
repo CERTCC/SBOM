@@ -29,11 +29,13 @@ var $metadata = {
 	"bom-ref": "$BomRef",
 	"name": "$PackageName",
 	"purl": "pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion",
-	"supplier": "$SupplierName",
-	"manufacture": {
+	"supplier": {
 	    "name": "$SupplierName"
 	},
 	"version": "$PackageVersion"
+    },
+    "manufacture": {
+	"name": "$SupplierName"
     }
 }
 var $component = {
@@ -41,10 +43,7 @@ var $component = {
     "bom-ref": "$BomRef",
     "name": "$PackageName",
     "purl": "pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion",
-    "supplier": "$SupplierName",
-    "manufacture": {
-	"name": "$SupplierName"
-    },
+    "publisher": "$SupplierName",
     "version": "$PackageVersion"
 }
 var $dependency = {
@@ -678,7 +677,8 @@ function generate_spdx() {
     $('#dlswid').attr('href','data:text/plain;charset=utf-8,' + encodeURIComponent(swid))
     $('#dlcyclonedx').attr('download','CycloneDX-'+fPfx+timefile()+'.xml')
     $('#dlcyclonedx').attr('href','data:text/plain;charset=utf-8,'
-			   + encodeURIComponent(cyclonedx))        
+			   + encodeURIComponent(cyclonedx))
+    /* Create png but don't download */
     treeData=grapharray(alltreeData)
     draw_graph()
     $('.cactive').removeClass('cactive')
@@ -1279,7 +1279,7 @@ function FillFromExcel(dexcel) {
     update_relationships_psuedo(cmps)
 }
 
-function triggerDownload (imgURI) {
+function triggerDownload (dataURI,fname,el) {
     var evt = new MouseEvent('click', {
 	view: window,
 	bubbles: false,
@@ -1287,16 +1287,16 @@ function triggerDownload (imgURI) {
     })
     var a = document.createElement('a');
     var dfname = $('#DocumentName').val().replace(/[^A-Z0-9\-]/gi,'_')
-    a.setAttribute('download', dfname+'.png')
-    a.setAttribute('href', imgURI)
+    a.setAttribute('download', fname)
+    a.setAttribute('href', dataURI)
     a.setAttribute('target', '_blank')
     a.dispatchEvent(evt);
-    $('#dlsvg').attr('href',imgURI)
-    $('#dlsvg').attr('download',dfname+'.png')
-    $('#dlsvg').attr('onclick',null)
+    $(el).attr('href',dataURI)
+    $(el).attr('download',fname)
+    $(el).attr('onclick',null)
 }
 
-function download_png() {
+function make_png(nodownload,nextfun) {
     var linecolor = 'white'
     var fillcolor = 'black'
     if($('body').hasClass('blackbody')) {
@@ -1320,7 +1320,8 @@ function download_png() {
     var DOMURL = window.URL || window.webkitURL || window;
     var img = new Image()
     var svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'})
-    var url = DOMURL.createObjectURL(svgBlob);
+    var url = DOMURL.createObjectURL(svgBlob)
+    var dfname = $('#DocumentName').val().replace(/[^A-Z0-9\-]/gi,'_')+'.png'
     img.onload = function () {
 	ctx.clearRect ( 0, 0, width, height );
 	ctx.drawImage(img, 0, 0,width,height);
@@ -1328,8 +1329,39 @@ function download_png() {
 	var imgURI = canvas
 	    .toDataURL('image/png')
 	    .replace('image/png', 'image/octet-stream')
-	triggerDownload(imgURI)
+	if(nodownload)
+	    $('#pngblob').val(imgURI.split(";")[1].replace("base64,",""))
+	else
+	    triggerDownload(imgURI,dfname,'#dlsvg')
+	if(typeof(nextfun) == "function")
+	    nextfun()
     }
   img.src = url
 }
+function download_zip() {
+    /* Create PNG file but do not download */
+    make_png(true, do_download_zip)
+}
+function do_download_zip() {
+    var zname = $('#DocumentName').val().replace(/[^A-Z0-9\-]/gi,'_')    
+    var zip = new JSZip()
+    var dfolder = zip.folder(zname);
+    //zip.file(zname+".spdx", $('#pspdx').val())
+    dfolder.file(zname+".spdx", $('#pspdx').html())
+    dfolder.file(zname+"-swid.xml", $('#swidtext').val())
+    dfolder.file(zname+"-cyclonedx.xml", $('#cyclonedxXML').val())
+    console.log($('#pngblob').val())
+    dfolder.file(zname+".png",$('#pngblob').val(), {base64: true})
+    
+    zip.generateAsync({type:"base64"})
+	.then(function(content) {
+	    // see FileSaver.js
+	    //saveAs(content, "example.zip");
+	    sessionStorage.setItem("zip",content)
+	    console.log("done")
+	    var zcontent = "data:application/octet-stream;base64,"+content
+	    triggerDownload(zcontent,zname+".zip",'#dlzip')
+	});
 
+
+}
