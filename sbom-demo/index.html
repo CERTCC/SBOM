@@ -635,10 +635,12 @@
 	##
 	PackageName: $PackageName
 	SPDXID: SPDXRef-$EscPackageName
-	PackageComment: &lt;text&gt;PURL is pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
+	PackageComment: &lt;text&gt;PURL is pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
+	ExternalRef: PACKAGE-MANAGER purl pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion
 	PackageVersion: $PackageVersion
 	PackageSupplier: $SupplierType: $SupplierName
 	Relationship: $SPDXID DESCRIBES SPDXRef-$EscPackageName
+	Relationship: SPDXRef-$EscPackageName CONTAINS NONE
 	PackageDownloadLocation: $PackageDownloadLocation
 	FilesAnalyzed: $FilesAnalyzed
 	PackageLicenseConcluded: $PackageLicenseConcluded
@@ -653,17 +655,24 @@
 	##
 	PackageName: $PackageName
 	SPDXID: SPDXRef-$EscPackageName
-	PackageComment:  &lt;text&gt;PURL is pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
+	PackageComment:  &lt;text&gt;PURL is pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
+	ExternalRef: PACKAGE-MANAGER purl pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion	
 	PackageVersion: $PackageVersion
 	PackageSupplier: $SupplierType: $SupplierName
 	Relationship: SPDXRef-$EscPrimaryPackageName CONTAINS SPDXRef-$EscPackageName
+	Relationship: SPDXRef-$EscPackageName CONTAINS NOASSERTION	
 	PackageDownloadLocation: $PackageDownloadLocation
 	FilesAnalyzed: $FilesAnalyzed
 	PackageLicenseConcluded: $PackageLicenseConcluded
 	PackageLicenseDeclared: $PackageLicenseDeclared
 	PackageCopyrightText: $PackageCopyrightText
       </div>
-      
+      <div class="externalreference">
+	#ExternalDocumentRef: DocumentRef-ACME-IVDControlStation-1.0-SBOMv2020-10-07T205156 http://www.hospitalproducts.acme SHA1: d6a770ba38583ed4bb4525bd96e50461655d2759
+	#Relationship:  SPDXRef-IVDControlStation-1.0 CONTAINS DocumentRef-ACME-IVDControlStation-1.0-SBOMv2020-10-07T205156:SPDXRef-IVDControlStation-1.0
+	ExternalDocumentRef: DocmentRef-$ExtSPDXFileName $ExtDocumentNameSpace SHA256: $ExtDocumentSHA256Singature
+	Relationship: 
+      </div>
     </div>
     <div id="swid">
       <textarea class="pcmp">
@@ -695,7 +704,7 @@
 	  <component type="device" bom-ref="$BomRef">
 	    <name>$PackageName</name>
 	    <version>$PackageVersion</version>
-	    <purl>pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion</purl>
+	    <purl>pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion</purl>
 	  </component>
 	  <manufacture>
 	    <name>$SupplierName</name>
@@ -718,7 +727,7 @@
 	  <publisher>$SupplierName</publisher>
 	  <name>$PackageName</name>
 	  <version>$PackageVersion</version>
-	  <purl>pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion</purl>
+	  <purl>pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion</purl>
 	</component>
       </textarea>
       <!-- Dependencies currently hard coded in populate_dependencies routine-->
@@ -841,7 +850,7 @@
 	</div>
       </div>
     </div>    
-    <script src="script.js?v=1600981731"></script>
+    <script src="script.js?v=1602702945"></script>
     <input type="file" onchange="readFile(this,false)" style="opacity:0.01" id="spdxload">
     <canvas id="canvas" style="display:none"></canvas>
   </body>

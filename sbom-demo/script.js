@@ -1,5 +1,5 @@
 /* SBOM-Demo script.js version 4.2 ability to export CyconeDX as JSON and Graph as PNG  */
-const _version = 4.3
+const _version = 4.4
 /* Internal JSON representation */
 var fjson
 var swidHead = '<?xml version="1.0" ?>\n<SwidTags>'
@@ -28,7 +28,7 @@ var $metadata = {
 	"type": "device",
 	"bom-ref": "$BomRef",
 	"name": "$PackageName",
-	"purl": "pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion",
+	"purl": "pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion",
 	"supplier": {
 	    "name": "$SupplierName"
 	},
@@ -42,7 +42,7 @@ var $component = {
     "type": "library",
     "bom-ref": "$BomRef",
     "name": "$PackageName",
-    "purl": "pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion",
+    "purl": "pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion",
     "publisher": "$SupplierName",
     "version": "$PackageVersion"
 }
@@ -582,6 +582,7 @@ function generate_spdx() {
     var tpcmp = $('#spdx .pcomponent').html()
 
     hkey['EscPackageName'] = hkey['PackageName'].replace(/[^A-Z0-9\.\-]/gi,'-')
+    hkey['UrlSupplierName'] = encodeURIComponent(hkey['SupplierName'])
     hkey['UrlPackageName'] = encodeURIComponent(hkey['PackageName'])
     /* Used in CycloneDX only */
     hkey['BomRef'] = generate_uuid()
@@ -647,6 +648,7 @@ function generate_spdx() {
 	fjson.Packages.push(hkey)
 	hkey['EscPackageName'] = hkey['PackageName'].replace(/[^A-Z0-9\.\-]/gi,'-')
 	hkey['UrlPackageName'] = encodeURIComponent(hkey['PackageName'])
+	hkey['UrlSupplierName'] = encodeURIComponent(hkey['SupplierName'])	
 	tpcmp = $('#spdx .subcomponent').html()
 	tpcmps += tpcmp.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
 	tpcmps += spdx_lite_content($(cmps[i]).find('.spdx-lite-field'),hkey)
