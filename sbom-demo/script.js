@@ -1,5 +1,5 @@
 /* SBOM-Demo script.js version 4.2 ability to export CyconeDX as JSON and Graph as PNG  */
-const _version = 4.4
+const _version = 4.9
 /* Internal JSON representation */
 var fjson
 var swidHead = '<?xml version="1.0" ?>\n<SwidTags>'
@@ -66,13 +66,26 @@ $(function () {
     $('[data-toggle="tooltip"]').tooltip()	
     if(self != self.parent) {
 	$('th.parent-header').addClass('d-none')
-	/* Now granchildren for now */
+	if(parent.window.document.body.classList.contains('blackbody'))
+	    $('body').addClass('blackbody')
+	else
+	    $('body').removeClass('blackbody')	    
+	/* No granchildren for now */
 	$('.childbomframe').remove()
 	if(typeof tempValue != "undefined") {
 	    parse_spdx(tempValue,null,false,tempId)
 	}
     }
 })
+function iframeautoheight(frameObj) {
+    /* Not working right now */
+    if(frameObj) {
+	var nh = frameObj.contentWindow.$('.container').height() + 12
+	frameObj.style.height = String(nh)+'px'
+	return 1
+    }
+    return 0
+}
 
 document.onkeydown = function(evt) {
     evt = evt || window.event;
@@ -91,8 +104,10 @@ function vtoggle(w,fclass) {
 }
 function viewChild(w) {
     var cId = $(w).closest('table').attr('id')
-    if(cId)
+    if(cId) {
+	//iframeautoheight($('#c-'+cId).find('.iframeTemplate')[0])
 	$('#c-'+cId).show()
+    }
 }
 function setmvalue(w) {
     var aid = $(w).closest('table').attr("id")
@@ -439,6 +454,30 @@ function parse_spdx(spdxin,mchild,input,fPid) {
 	$('#PrimaryComponent').find("input.form-control").each(function(i,v) {
 	    self.parent.window.$('#'+fPid).find('[name="'+v.name+'"]').val(v.value)
 	})
+	self.parent.window.swal("Child SBOM is loaded as an External Reference!")
+	/* Update hidden field in parent with External Reference information */
+	/* ExternalDocumentRef: DocmentRef-$ExtDocumentName $ExtDocumentNamespace  $ExtOptionalSHA256Singature
+	   Relationship: SPDXRef-$EscPackageName CONTAINS DocumentRef-$ExtDocumentName:SPDXRef-$EscPrimaryPackageName
+	*/
+	generate_spdx()
+	if($('#dlspdx').data('sha256')) {
+	    /* If sha256 signature exists use it*/
+	    var fsha256 = $('#dlspdx').data('sha256')
+	    $('#main_form').append($('<input>').attr('type','hidden').addClass('tempH').
+				   attr('id','OptionalSHA256Signature').val('SHA256: '+fsha256))
+	}
+	if($('#PrimaryPackageName').val()) {
+	    /* Escp primary packagename to be added as well*/
+	    var escpkgname = $('#PrimaryPackageName').val().replace(/[^A-Z0-9\.\-]/gi,'-')
+	    $('#main_form').append($('<input>').attr('type','hidden').addClass('tempH').
+				   attr('id','EscPackageName').val(escpkgname))
+	}
+	var externalInfo = $('.externalreference').html().
+	    replace(/\$([A-Za-z0-9]+)/gi, x => { var y = x.replace("$Ext","")
+						 return $('#'+y).val() || ""
+					       })
+	console.log(externalInfo)
+	self.parent.window.$('#'+fPid).find(".ExtReferencePayload").html(externalInfo)
     }
 }
 function update_relationships_psuedo(cmps) {
@@ -758,6 +797,7 @@ function generate_spdx() {
 	tpcmp = $('#spdx .subcomponent').html()
 	tpcmps += tpcmp.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
 	tpcmps += spdx_lite_content($(cmps[i]).find('.spdx-lite-field'),hkey)
+	tpcmps += $(cmps[i]).find('.ExtReferencePayload').html()
 	swidpcmps += $('#swid .cmp').val().
 	    replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
 	var xcmpsJ = JSON.parse(JSON.stringify($component).replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")]))
@@ -781,6 +821,8 @@ function generate_spdx() {
     var fPfx = $('input[name="DocumentName"]').val().replace(/[^0-9A-Z]/gi,'-')+'-'
     $('#dlspdx').attr('download','SPDX-'+fPfx+timefile()+'.spdx')
     $('#dlspdx').attr('href','data:text/plain;charset=utf-8,' + encodeURIComponent(spdxdl))
+    if(typeof sha256 == "function") 
+	$('#dlspdx').data("sha256",sha256(spdxdl))
     $('#dlswid').attr('download','SWID-'+fPfx+timefile()+'.xml')
     $('#dlswid').attr('href','data:text/plain;charset=utf-8,' + encodeURIComponent(swid))
     $('#dlcyclonedx').attr('download','CycloneDX-'+fPfx+timefile()+'.xml')
@@ -885,7 +927,7 @@ function update(source) {
 	    try {
 		x = JSON.parse(d.props)
 		if("ExternalReference" in x) 
-		    if($('#'+x.ExternalReference).length > 0)
+		    if($('#c-'+x.ExternalReference).length > 0)
 			return "url(#hash4_4)"
 	    } catch(err) {
 		console.log("Error in parsing JSON "+err)
@@ -969,9 +1011,9 @@ function showdiv(d) {
 	addons += '<br>Created by:'+props.Creator
     if('CreatorComment' in props)
 	addons += '<br>Comments:'+props.CreatorComment
-    if(('ExternalReference' in props) && ($('#'+props.ExternalReference).length > 0)) {
+    if(('ExternalReference' in props) && ($('#c-'+props.ExternalReference).length > 0)) {
 	var btitle = $('#'+props.ExternalReference).find('[name="PackageName"]').val()
-	addons += '<br>External BOM:'+btitle+'<br><i>click to open child BOM</i>'
+	addons += '<br>External BOM: '+btitle+'<br><i>click to open child BOM</i>'
     }
     if('vul_part' in vul_data) {
 	var vid = parseInt(vul_data.vul_part)
@@ -1026,7 +1068,12 @@ function doclick(d) {
     //console.log(d)
     try {
 	var x = JSON.parse(d.props)
-	if(('ExternalReference' in x) && ($('#'+x.ExternalReference).length > 0)) {
+	if(('ExternalReference' in x) && ($('#c-'+x.ExternalReference).length > 0)) {
+	    var iframeObj = $('#c-'+x.ExternalReference).find('.iframeTemplate')[0]
+	    //iframeautoheight(iframeObj)
+	    var cW = iframeObj.contentWindow
+	    cW.generate_spdx()
+	    cW.$('#graphshow').click()
 	    $('#c-'+x.ExternalReference).show()
 	    return
 	}

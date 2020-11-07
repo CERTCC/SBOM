@@ -22,10 +22,9 @@
 	    crossorigin="anonymous"></script>
     <script src="d3.min.js" async defer></script>
     <script src="sweetalert.min.js" async defer></script>
-    <script src="jszip.min.js" async defer>
-    </script>
-    <script src="xlsx.js" async defer>
-    </script>
+    <script src="jszip.min.js" async defer></script>
+    <script src="xlsx.js" async defer></script>
+    <script src="sha256.js" async defer></script>    
     <link rel="stylesheet" href="css.css?v=1600741197">
   </head>
   <body class="blackbody">
@@ -36,7 +35,8 @@
       </h4>
       <button class="btn text-center btn-warning float-right" type="button"
 	      style="margin-bottom: 3px" onclick="$(this).parent().hide()">Return</button>
-      <iframe src="./" style="width:100%; height:100%" class="iframeTemplate"></iframe>
+      <iframe src="./" style="width:100%; height:100%; min-height:600px"
+	      class="iframeTemplate"></iframe>
     </div>
     <div id="scontent" class="coverpage">
       <button class="btn text-muted text-center btn-warning float-right" type="button"
@@ -64,7 +64,8 @@
 	  &darr;
 	</a>
 	| 
-	<a href="javascript:void(0)" onclick="showme('#graph',1,'.scontent',this)">
+	<a href="javascript:void(0)" onclick="showme('#graph',1,'.scontent',this)"
+	   id="graphshow">
 	  Graph
 	</a>
 	<a id="dlsvg" class="dldr" onclick="make_png(false,null)" href="javascript:void(0)"
@@ -169,7 +170,8 @@
 	    </tr>
 	    <tr class="thead">
 	      <td>Document Namespace</td>
-	      <td><input class="form-control" type="url" name="DocumentNamespace" placeholder="http://www.hospitalproducts.acme">
+	      <td><input class="form-control" type="url" name="DocumentNamespace" 
+			 id="DocumentNamespace" placeholder="http://www.hospitalproducts.acme">
 	      </td>
 	    </tr>
 	    <tr class="thead">
@@ -225,7 +227,7 @@
 		      <td>Component Name</td>
 		      <td>
 			<input class="form-control" type="text" placeholder="INFUSION"
-			       onchange="update_cmp_names(this)"
+			       onchange="update_cmp_names(this)" id="PrimaryPackageName" 
 			       name="PackageName">
 		      </td>
 		    </tr>
@@ -432,6 +434,8 @@
 		<input type="checkbox" class="cbomfileExternal not_required" value=""
 		       name="ExternalReference" onchange="setmvalue(this)"/>
 		External Reference
+		<!-- Hidden div will be updated by the child iframe -->
+		<div class="ExtReferencePayload d-none"></div>
 		<button class="btn btn-info float-right childbomButton d-none"
 			data-toggle="tooltip" data-placement="top" title=""
 			onclick="viewChild(this)" data-original-title="View Full Child SBOM">
@@ -597,64 +601,13 @@
 	SPDXID: $SPDXID
 	DocumentName: $DocumentName
 	DocumentNamespace: $DocumentNamespace
-
-	## *** Framing Baseline Element
-	## 2.2.1 Author Name
-	## Creator: Organization: Organization-Division()
-	## Created should be in ISO 8601 standard, UTC format: YYYY-MM-DDThh:mm:ssZ
-	## Created: 2019-12-25T11:00:00Z
 	Creator: $CreatorType: $Creator
 	Created: $Created
 	CreatorComment: &lt;text&gt;$CreatorComment&lt;/text&gt;
       </div>
       <div class="pcomponent">
-
 	## Packages
-	## *** Framing Component Baseline Elements
-	##
-	## 2.2.3 Component Name
-	## PackageName: &lt;Component Name&gt;
-	##
-	## 2.2.6 Unique Identifier
-	## SPDXID: "SPDXRef-" followed by letters, numbers, ".", and/or "-".
-	## == Recommendation is to use subset of package name for readability.
-	## SPDXID: SPDXRef-&lt;PackageName&gt;
-	## == SPDX-2.1 Does not support the purl syntax, so it is included as a Package Comment
-	## PackageComment: &lt;text&gt; PURL is pkg:supplier/&lt;PackageSupplier&gt;/&lt;PackageName&gt;@&lt;PackageVersion&gt; &lt;/text&gt;
-	##    Use purl to construct an identifier
-	##    scheme:type:namespace/name@version?qualifiers#subpath
-	##    scheme: (pkg)
-	##  type: (supplier)
-	##  namespace: PackageSupplier
-	##  name: PackageName
-	##  version: PackageVersion
-	##  qualifiers#subpath: (skip)
-	##
-	##  2.2.2 Supplier Name
-	## PackageSupplier: &lt;Supplier Name&gt;
-	##
-	##  2.2.4 Version String
-	## PackageVersion: &lt;Version String&gt;
-	##
-	## 2.2.7 Relationship
-	## == Primary Component Relationship (Self)
-	## Relationship: $SPDXID DESCRIBES SPDXRef-$PackageName
-	## == Included Component Relationship (Included in)
-	## Relationship: &lt;SPDXRef-1&gt; CONTAINS &lt;SPDXRef-2 style&gt;
-	##
-	## Note: The following fields are needed to have a valid document that the tools can process
-	##       If you know the values, fill them in, otherwise feel free to use these defaults
-	## PackageDownloadLocation: NOASSERTION
-	## FilesAnalyzed: false
-	## PackageLicenseConcluded: NOASSERTION
-	## PackageLicenseDeclared: NOASSERTION
-	## PackageCopyrightText: NOASSERTION
-
-
-	##
-	## ***Framing Baseline
 	## 2.4 Primary Component (described by the SBOM)
-	##
 	PackageName: $PackageName
 	SPDXID: SPDXRef-$EscPackageName
 	PackageComment: &lt;text&gt;PURL is pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
@@ -670,10 +623,7 @@
 	PackageCopyrightText: $PackageCopyrightText
       </div>
       <div class="subcomponent">
-
-	##
-	## ***Framing Baseline
-	## 2.4 First-Level Components
+	## 2.4 All-Levels Components
 	##
 	PackageName: $PackageName
 	SPDXID: SPDXRef-$EscPackageName
@@ -689,11 +639,8 @@
 	PackageLicenseDeclared: $PackageLicenseDeclared
 	PackageCopyrightText: $PackageCopyrightText
       </div>
-      <div class="externalreference">
-	#ExternalDocumentRef: DocumentRef-ACME-IVDControlStation-1.0-SBOMv2020-10-07T205156 http://www.hospitalproducts.acme SHA1: d6a770ba38583ed4bb4525bd96e50461655d2759
-	#Relationship:  SPDXRef-IVDControlStation-1.0 CONTAINS DocumentRef-ACME-IVDControlStation-1.0-SBOMv2020-10-07T205156:SPDXRef-IVDControlStation-1.0
-	ExternalDocumentRef: DocmentRef-$ExtSPDXFileName $ExtDocumentNameSpace SHA256: $ExtDocumentSHA256Singature
-	Relationship: 
+      <div class="externalreference">ExternalDocumentRef: DocmentRef-$ExtDocumentName $ExtDocumentNamespace $ExtOptionalSHA256Signature
+	Relationship: SPDXRef-$ExtEscPackageName CONTAINS DocumentRef-$ExtDocumentName:SPDXRef-$ExtEscPackageName
       </div>
     </div>
     <div id="swid">
@@ -872,7 +819,7 @@
 	</div>
       </div>
     </div>    
-    <script src="script.js?v=1604724352"></script>
+    <script src="script.js?v=1604784612"></script>
     <input type="file" onchange="readFile(this,false)" style="opacity:0.01" id="spdxload">
     <canvas id="canvas" style="display:none"></canvas>
   </body>
