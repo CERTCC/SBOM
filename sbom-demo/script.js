@@ -189,20 +189,27 @@ function readFile(input,mchild) {
 	    if($('.cbomfileExternal').is(':checked')) {
 		var cfPid = qt.attr("id")
 		var cframeId = "c-"+cfPid
-		var cframe = $('.cframeTemplate').clone().removeClass('.cframeTemplate').
-		    attr("id",cframeId)
-		$('body').prepend(cframe)
+		var cloneFrame = $('.cframeTemplate').clone()
+		$('#'+cframeId).remove()
+		var cframe = $('.cframeTemplate').attr("id",cframeId).
+		    removeClass('cframeTemplate')
+		/* save a cloned frame for next Embed event*/
+		cframe.before(cloneFrame)
 		var parentsTitle = $('#PrimaryComponent').find('[name="PackageName"]').val()
 		cframe.find('.parentTitle').html(parentsTitle)
 		var ciFrame = $('#'+cframeId).find(".iframeTemplate").attr("name",cframeId)
-		var zIndexBase = $("#scontent").css("z-index");
+		var zIndexBase = parseInt($("#scontent").css("z-index"))
 		cframe.css({'z-index': zIndexBase + $('.coverpage').length*10})
-		var cWindow = ciFrame[0].contentWindow		
+		var cWindow = ciFrame[0].contentWindow
+		/* New method uses iframe postMessage*/
+		cWindow.postMessage({childSPDX:reader.result,parentcId:cfPid})
+		/* Legacy method for sending data to child frame 
 		ciFrame.attr("onload",function() {
 		    cWindow.tempValue = reader.result
 		    cWindow.tempId = cfPid
 		    //parse_spdx(reader.result,null,false,false)
 		})
+		*/
 		//$('#'+cframeId).find(".iframeTemplate")[0].contentWindow
 		
 		/* 
@@ -246,6 +253,21 @@ function readFile(input,mchild) {
 	console.log(reader.error);
 	swal("File Read Error","File reading as text failed","error")
     }
+}
+function msgReceiver(info) {
+    if(!('data' in info)) {
+	console.log("Error message data is missing")
+	return
+    }
+    /* cWindow.postMessage({childSPDX:reader.result,parentcId:cfPid}) */
+    if((info.source != info.target) && ('childSPDX' in info.data) && ('parentcId' in info.data))
+	parse_spdx(info.data.childSPDX,null,false,info.data.parentcId)
+}
+
+if ( window.addEventListener ) {
+    window.addEventListener('message', msgReceiver, false);
+} else if ( window.attachEvent ) { 
+    window.attachEvent('onmessage', msgReceiver);
 }
 
 function recurse_remove(componentId) {
@@ -1528,28 +1550,43 @@ function make_png(nodownload,nextfun) {
 }
 function download_zip() {
     /* Create PNG file but do not download */
+    $('#dlzip').addClass('processing')
     make_png(true, do_download_zip)
 }
 function do_download_zip() {
     var zname = $('#DocumentName').val().replace(/[^A-Z0-9\-]/gi,'_')    
     var zip = new JSZip()
-    var dfolder = zip.folder(zname);
-    //zip.file(zname+".spdx", $('#pspdx').val())
-    dfolder.file(zname+".spdx", $('#pspdx').html())
+    var dfolder = zip.folder(zname)
+    var ws = []
+    /* Child windows */
+    var cws = $('.childbomframe').not('.cframeTemplate').find("iframe")
+    for(var i=0; i<cws.length; i++) {
+	ws = ws.concat(cws[i].contentWindow)
+	cws[i].contentWindow.make_png(true)
+    }
+    dfolder.file(zname+".spdx", $('pre#pspdx').text().replace(/\n\s+/g,'\n'))
     dfolder.file(zname+"-swid.xml", $('#swidtext').val())
     dfolder.file(zname+"-cyclonedx.xml", $('#cyclonedxXML').val())
-    console.log($('#pngblob').val())
     dfolder.file(zname+".png",$('#pngblob').val(), {base64: true})
-    
-    zip.generateAsync({type:"base64"})
-	.then(function(content) {
-	    // see FileSaver.js
-	    //saveAs(content, "example.zip");
-	    sessionStorage.setItem("zip",content)
-	    console.log("done")
-	    var zcontent = "data:application/octet-stream;base64,"+content
+    var timer = cws.length*800 
+    setTimeout(function() {
+	for (var i =0; i< ws.length; i++) {
+	    var vw = ws[i]
+	    var vzname = vw.$('#DocumentName').val().replace(/[^A-Z0-9\-]/gi,'_')
+	    dfolder.file(vzname+".spdx", vw.$('pre#pspdx').text().replace(/\n\s+/g,'\n'))
+	    dfolder.file(vzname+"-swid.xml", vw.$('#swidtext').val())
+	    dfolder.file(vzname+"-cyclonedx.xml", vw.$('#cyclonedxXML').val())
+	    dfolder.file(vzname+".png",vw.$('#pngblob').val(), {base64: true})
+	}
+	zip.generateAsync({type:"base64"})
+	    .then(function(content) {
+		// see FileSaver.js
+		//saveAs(content, "example.zip");
+		sessionStorage.setItem("zip",content)
+		console.log("done")
+		var zcontent = "data:application/octet-stream;base64,"+content
 	    triggerDownload(zcontent,zname+".zip",'#dlzip')
-	});
-
-
+		$('#dlzip').removeClass('processing')	    
+	    });
+    },timer)
 }

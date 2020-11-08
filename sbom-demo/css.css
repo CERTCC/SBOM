@@ -1,4 +1,15 @@
 /* SBOM-Demo css.css version 2.6 */
+.processing {
+    pointer-events: none;
+    opacity: 0.5;
+    text-decoration: line-through;
+    animation: blinker 1s linear infinite;    
+}
+@keyframes blinker {
+    50% {
+	opacity: 0.1;
+    }
+}
 input:disabled {
     border: 1px dotted green !important;
 }
