@@ -114,7 +114,7 @@
 	    <tr>
 	      <th colspan="2" class="text-center parent-header">
 		<img src="cert_tweet_logo.jpg" class="cert-tweet" alt="CERT Logo"
-		     onclick="$('body').toggleClass('blackbody')"/>
+		     onclick="wtoggle('blackbody')">
 		SwiftBOM - SBOM Generator for PoC and Demos &nbsp;
 		<a href="javascript:void(0)" onclick="do_example()">Load Example</a>
 		| &nbsp; 
@@ -777,6 +777,10 @@
 	      <p />
 	      <h4>Usage Instructions</h4>
 	      <ul>
+		<li> Watch quick introduction videos playlist
+		  <a href="https://www.youtube.com/watch?v=ejuJd5kVDAk&list=PLKr8MJRsuoPHGqfcoj8auu7zax8oLRPsH"
+		     target="_blank">@ YouTube</a>
+
 		<li>Click on top right corner CERT icon to toggle "Dark Mode" on and off</li>
 		<li> Click on <i>"Load Example"</i> for simple view of a
 		  SPDX lite loaded into three formats (SPDX, SWID and CycloneDX)
@@ -802,7 +806,6 @@
 		<li>
 		  In Graph mode, you can click on Vulnerabilities to edit - add or remove vulnerbailities per foand remove all the vulnerabilities using the "-" minus sign  and then click Simulate to see plain graph no vulnerability simulated and no red dots.
 		</li>
-		
 		<li>
 		  If you have trouble using this software or desire a feature, please reach out
 		  using Github's <i>"Issues"</i>.
@@ -819,7 +822,7 @@
 	</div>
       </div>
     </div>    
-    <script src="script.js?v=1604813574"></script>
+    <script src="script.js?v=1605633512"></script>
     <input type="file" onchange="readFile(this,false)" style="opacity:0.01" id="spdxload">
     <canvas id="canvas" style="display:none"></canvas>
   </body>

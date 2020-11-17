@@ -1,4 +1,4 @@
-/* Source raintluff.github.io/sha256/sha256.min.js
+/* Source https://geraintluff.github.io/sha256/ Hosted version
     Version : 1.0
 */
 var sha256 = function sha256(ascii) {

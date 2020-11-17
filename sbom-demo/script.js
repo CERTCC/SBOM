@@ -77,6 +77,10 @@ $(function () {
 	}
     }
 })
+function wtoggle(wclass) {
+    $('body').toggleClass(wclass)
+    $('iframe').each((i,w) => w.contentWindow.$('body').toggleClass('blackbody'))
+}
 function iframeautoheight(frameObj) {
     /* Not working right now */
     if(frameObj) {
@@ -708,8 +712,10 @@ function generate_spdx() {
     if(verify_inputs() == false)
 	return
     /* Clear past vuls */
-    if(window.safari)
+    if(window.safari) {
 	$('#dlsvg').hide()
+	$('#dlzip').hide()
+    }
     //$('.vul_template').not('.d-none').remove()
     $('.scontent').hide()
     var spdx = ""
