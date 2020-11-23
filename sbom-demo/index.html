@@ -645,18 +645,17 @@
     </div>
     <div id="swid">
       <textarea class="pcmp">
-	<SoftwareIdentity name="$PackageName"
-			  tagId="pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion"
+	<SoftwareIdentity xmlns="http://standards.iso.org/iso/19770/-2/2015/schema.xsd"
+			  xmlns:xsi="htttp://www.w3.org/2001/XMLSchema-instance"
+			  name="$PackageName"
+			  tagId="$UrlSupplierName-$UrlPackageName-$PackageVersion"
 			  version="$PackageVersion">
 	  <Entity name="$SupplierName" role="softwareCreator"/>
-	</SoftwareIdentity>
+	  <Meta generator="SwiftBOM SBOM Generator v1.3" /> 
       </textarea>
       <textarea class="cmp">
-	<SoftwareIdentity name="$PackageName"
-			  tagId="pkg:supplier/$SupplierName/$UrlPackageName@$PackageVersion"
-			  version="$PackageVersion">
-	  <Entity name="$SupplierName" role="softwareCreator"/>
-	</SoftwareIdentity>
+	<Link  rel="component" href="swid: $UrlSupplierName-$UrlPackageName-$PackageVersion"
+	       use="required" />
       </textarea>
     </div>
     <div id="cyclonedx">
@@ -822,7 +821,7 @@
 	</div>
       </div>
     </div>    
-    <script src="script.js?v=1605633512"></script>
+    <script src="script.js?v=1605976843"></script>
     <input type="file" onchange="readFile(this,false)" style="opacity:0.01" id="spdxload">
     <canvas id="canvas" style="display:none"></canvas>
   </body>

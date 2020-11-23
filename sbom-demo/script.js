@@ -2,8 +2,8 @@
 const _version = 4.9
 /* Internal JSON representation */
 var fjson
-var swidHead = '<?xml version="1.0" ?>\n<SwidTags>'
-var swidTail = '\n</SwidTags>'
+var swidHead = '<?xml version="1.0" ?>\n'
+var swidTail = '\n</SoftwareIdentity>'
 var cyclonedxSerialNumber = "urn:uuid:"+generate_uuid()
 var cyclonedxHead = '<?xml version="1.0"?>\n<bom '+
     'serialNumber="'+cyclonedxSerialNumber+'" \n'+
@@ -763,7 +763,7 @@ function generate_spdx() {
     $('.pcmp_table').attr('data-bomref', hkey['BomRef'])
     var PrimaryPackageName = hkey['PackageName']
     hkey['EscPrimaryPackageName'] = hkey['EscPackageName']    
-    var swidcmp = $('#swid .cmp').val()
+    var swidpcmp = $('#swid .pcmp').val()
 	.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
     var cyclonedxcmp = $('#cyclonedx .cyclonedxpcmp').val()
 	.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
@@ -772,7 +772,7 @@ function generate_spdx() {
 		      name: hkey['PackageName'],
 		      parent: null,
 		      children:[]})
-    swid += swidcmp
+    swid += swidpcmp
     cyclonedx += cyclonedxcmp 
     spdx += tpcmp.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
     spdx += spdx_lite_content($('.pcmp_table .spdx-lite-field'),hkey)
@@ -784,7 +784,7 @@ function generate_spdx() {
 
     var cmps = $('#main_table .cmp_table')
     var tpcmps = ""
-    var swidpcmps = ""
+    var swidcmps = ""
     var cyclonedxpcmps = ""
     for(var i=0; i< cmps.length; i++) {
 	hkey = {}
@@ -826,7 +826,7 @@ function generate_spdx() {
 	tpcmps += tpcmp.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
 	tpcmps += spdx_lite_content($(cmps[i]).find('.spdx-lite-field'),hkey)
 	tpcmps += $(cmps[i]).find('.ExtReferencePayload').html()
-	swidpcmps += $('#swid .cmp').val().
+	swidcmps += $('#swid .cmp').val().
 	    replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
 	var xcmpsJ = JSON.parse(JSON.stringify($component).replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")]))
 	cyclonedxJson['components'].push(xcmpsJ)
@@ -834,7 +834,7 @@ function generate_spdx() {
 	    replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])	
     }
     spdx += tpcmps
-    swid += swidpcmps+swidTail
+    swid += swidcmps+swidTail
     cyclonedx +=  '<components>\n' + cyclonedxpcmps + '</components>\n'+
 	'<dependencies>\n'+ cyclonedxdeps + '</dependencies>\n'+
 	cyclonedxTail
