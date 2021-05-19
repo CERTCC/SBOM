@@ -1,4 +1,24 @@
-/* SBOM-Demo css.css version 2.6 */
+/* SBOM-Demo css.css version 2.6.0 */
+.table th {
+    border-top: none;
+}
+#anouncer {
+    position:absolute;
+    display:none;
+    width: 100%;
+}
+.ms-ctn .ms-sel-item {
+    font-size: 16px;
+}
+.ms-ctn {
+    width: 50%;
+    max-width: 75%;
+    display: inline-block;
+}
+.ms-ctn .ms-sel-ctn input {
+    color: black !important;
+    background: white !important;
+}
 .processing {
     pointer-events: none;
     opacity: 0.5;

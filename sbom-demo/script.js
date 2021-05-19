@@ -1,5 +1,5 @@
-/* SBOM-Demo script.js version 4.2 ability to export CyconeDX as JSON and Graph as PNG  */
-const _version = 4.9
+/* SBOM-Demo script.js version 5.1.0 ability to export CyconeDX as JSON and Graph as PNG  */
+const _version = '5.1.0'
 /* Internal JSON representation */
 var fjson
 var swidHead = '<?xml version="1.0" ?>\n'
@@ -59,6 +59,12 @@ var treeData = []
 var vul_data = []
 var cve_data = []
 var alltreeData = []
+var cpe_data = []
+/* Load CPE data async */
+$.get("cpe_lookup/vendors_unique.txt").done(function(x) {
+    cpe_data = x.replace(/\"/g,'').split('\n')
+})
+
 /* Allow these to override URL and other validators */
 var DefaultEmpty = {"NONE":true,"NOASSERTION":true}
 /* jQuery document.ready equivalent or body onload*/
@@ -90,6 +96,144 @@ function iframeautoheight(frameObj) {
     }
     return 0
 }
+function get_versions(m,w,v) {
+    var wtable = $(w).closest('table')
+    m = m.replace("/","_").replace(":","_")
+    v = v.replace("/","_").replace(":","_")    
+    /* cpe_lookup/cve_lookup/microsoft/windows_2003_server_cve.json */
+    $.get("cpe_lookup/cve_lookup/"+m+"/"+v+"_cve.json").done(function(x) {
+	var sversions = []
+	/* versions to ignore in drop down*/
+	var invalid = {"N/A":1,"":1,"ANY":1}
+	var vkeys = ["version","version_end_including","version_end_excluding", "version_start_including","version_start_excluding"]
+	for(var i=0; i < x.length; i++) {
+	    var nvs = []
+	    for(var j=0; j < vkeys.length; j++) {
+		var ck = x[i][vkeys[j]]
+		if(ck in invalid)
+		    continue
+		nvs.push(ck)
+	    }
+	    if(nvs.length > 0) {
+		/* all these are useable as versions for dropdown */
+		for(var j=0; j < nvs.length; j++) {
+		    if(sversions.find(q => q.name == nvs[j]))
+			continue
+		    x[i]['name'] = nvs[j]
+		    x[i]['id'] = x[i]['cpe_id']
+		    sversions.push(x[i])
+		}
+	    }
+	}
+	var ms = wtable.find('.PackageVersionCPE')
+	    .magicSuggest({placeholder: 'CPE versions found',
+			   cls: 'PackageVersionCPE CPE',
+			   inputCfg: {'class':'not_required'},
+			   allowFreeEntries: false,
+			   data:sversions})
+	wtable.data('cve',sversions)
+	showCPEVuls(sversions,wtable)
+	$(ms).on('selectionchange', function(_e,_m,r){
+	    $('.CPEVuls').remove()	    
+	    if(r.length > 0) {
+		showCPEVuls(r,wtable)
+	    } else {
+		showCPEVuls(sversions,wtable)
+	    }
+	});
+	
+    })
+}
+function view_cve(aref) {
+    console.log(aref)
+    var href = "https://nvd.nist.gov/vuln/detail/"+aref.innerHTML
+    window.open(href)
+}
+function add_cve(cb) {
+    var cve = $(cb).closest('tr').data('cve')
+    if(!cve)
+	return
+    vul_data.push({cve:cve.cve_id,cvss_score: parseInt(cve.cvss_v3_score) ? cve.cvss_v3_score : cvss_v2_score,vul_part:-1})
+    
+}
+function showCPEVuls(tvuls,wtable) {
+    if((typeof(tvuls) != "undefined") && (tvuls.length > 0)) {
+	var ftable = '<tr class="CPEVuls text-warning"><td colspan="2" align="center"> <i>CPE matched vulnerabilities ['+String(tvuls.length)+']</i></td></tr>'
+	wtable.append(ftable)	
+	for (var i=0; i< tvuls.length; i++) {
+	    var tvul = tvuls[i]
+	    var cuid = generate_uuid()
+	    ftable = '<tr class="CPE CPEVuls text-warning '+cuid+'"><td colspan="2"><input type="checkbox" alt="Include" onclick="add_cve(this)" title="Include" class="not_required"> <a class="btn btn-outline-danger" onclick="view_cve(this)">'+tvul.cve_id+'</a> for version: <b>'+tvul.version +'</b>, edition: <b>'+tvul.edition+'</b>, with CVSS(v2 & v3) score: <b>'+tvul.cvss_v2_score+' & '+tvul.cvss_v3_score+'</b> </td></tr>'
+	    wtable.append(ftable)
+	    $('.'+cuid).data('cve',tvul)
+	}
+    }
+	
+}    
+
+function get_products(m,w) {
+    var wtable = $(w).closest('table')
+    m = m.replace("/","_").replace(":","_")
+    wtable.find('.PackageName').addClass("d-none")
+    wtable.find('.PackageNameCPE').removeClass("d-none")
+    $.get("cpe_lookup/product_lookup/"+m+"_v.txt").done(function(x) {
+	var p_data = x.split('\n')
+	var ms = wtable.find('.PackageNameCPE')
+	    .magicSuggest({placeholder: 'Component CPE name',
+			   cls: 'PackageNameCPE CPE',
+			   inputCfg: {'class':'not_required'},
+			   allowFreeEntries: true,
+			   maxSelection: 1,
+			   data:p_data})
+	$(ms).on('selectionchange', function(_e,_m,r){
+	    if(r.length == 1) {
+		if(p_data.findIndex(x => x == r[0]['name']) > -1) 
+		    get_versions(m,w,r[0]['name'])
+		$(w).closest('table').find('.PackageName').val(r[0]['name'])
+	    } else {
+		console.log("Clear")
+	    }
+	});
+    })
+}
+function use_cpe(w) {
+    var wtable = $(w).closest('table')
+    if($(w).is(':checked')) {
+	/* True use CPE */
+	if($('#anouncer').data("shown") != 1) {
+	    $('#anouncer').html("When using CPE select <b>Supplier Name</b> from dropdown and then <b>Component Name</b> and then <b>Version</b>")
+	    $('#anouncer').show().delay(5000).fadeOut()
+	}
+	wtable.find('.SupplierName').addClass("d-none")
+	wtable.find('.SupplierNameCPE').removeClass("d-none")
+	var ms = wtable.find('.SupplierNameCPE')
+	    .magicSuggest({placeholder: 'Supplier CPE names',
+			   cls: 'SupplierNameCPE CPE',
+			   inputCfg: {'class':'not_required'},
+			   allowFreeEntries: true,
+			   maxSelection: 1,
+			   data:cpe_data})
+	$(ms).on('selectionchange', function(_e,_m,r){
+	    wtable.find(".PackageNameCPE").remove()
+	    wtable.find(".PackageName").after('<div class="PackageNameCPE"/>')
+	    if(r.length == 1) {
+		if(cpe_data.findIndex(x => x == r[0]['name']) > -1)
+		    get_products(r[0]['name'],w)
+		else
+		    wtable.find(".PackageName").removeClass("d-none")
+		wtable.find('.SupplierName').val(r[0]['name'])
+	    } else {
+		console.log("Clear")
+		wtable.find(".PackageName").removeClass("d-none")
+	    }
+	});
+    } else {
+	/* False dont use CPE*/
+	wtable.find('.noCPE').removeClass("d-none")
+	wtable.find('.CPE').addClass("d-none")	
+    }
+}
+
 
 document.onkeydown = function(evt) {
     evt = evt || window.event;
@@ -1595,4 +1739,54 @@ function do_download_zip() {
 		$('#dlzip').removeClass('processing')	    
 	    });
     },timer)
+}
+/*
+ * @copyright by Jon Papaioannou (["john", "papaioannou"].join(".") + "@gmail.com")
+ * @license This function is in the public domain. Do what you want with it, no strings attached.
+ */
+function semverCompare(v1, v2, options) {
+    var lexicographical = options && options.lexicographical,
+	zeroExtend = options && options.zeroExtend,
+	v1parts = v1.split('.'),
+	v2parts = v2.split('.');
+
+    function isValidPart(x) {
+	return (lexicographical ? /^\d+[A-Za-z]*$/ : /^\d+$/).test(x);
+    }
+
+    if (!v1parts.every(isValidPart) || !v2parts.every(isValidPart)) {
+	return NaN;
+    }
+
+    if (zeroExtend) {
+	while (v1parts.length < v2parts.length) v1parts.push("0");
+	while (v2parts.length < v1parts.length) v2parts.push("0");
+    }
+
+    if (!lexicographical) {
+	v1parts = v1parts.map(Number);
+	v2parts = v2parts.map(Number);
+    }
+
+    for (var i = 0; i < v1parts.length; ++i) {
+	if (v2parts.length == i) {
+	    return 1;
+	}
+
+	if (v1parts[i] == v2parts[i]) {
+	    continue;
+	}
+	else if (v1parts[i] > v2parts[i]) {
+	    return 1;
+	}
+	else {
+	    return -1;
+	}
+    }
+
+    if (v1parts.length != v2parts.length) {
+	return -1;
+    }
+
+    return 0;
 }
