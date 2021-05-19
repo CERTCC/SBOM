@@ -4,7 +4,8 @@
     <title>SwiftBOM- SBOM generator for demo and PoCs</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="referrer" content="no-referrer" />
-    <meta name="generator" content="SBOM-Demo 1.1 - SEI" />
+    <meta name="version" content="1.8.0" />
+    <meta name="generator" content="SBOM-Demo 1.8 - SEI" />
     <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
     <link rel="stylesheet"
 	  href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
@@ -22,10 +23,12 @@
 	    crossorigin="anonymous"></script>
     <script src="d3.min.js" async defer></script>
     <script src="sweetalert.min.js" async defer></script>
-    <script src="jszip.min.js" async defer></script>
-    <script src="xlsx.js" async defer></script>
-    <script src="sha256.js" async defer></script>    
-    <link rel="stylesheet" href="css.css?v=1604812157">
+    <script src="jszip.js" async defer></script>
+    <script src="xlsx.full.min.js"></script>
+    <script src="sha256.js" async defer></script>
+    <link href="magicsuggest-min.css" rel="stylesheet">
+    <script src="magicsuggest-min.js" async defer></script>
+    <link rel="stylesheet" href="css.css?v=1621374112">
   </head>
   <body class="blackbody">
     <div class="coverpage childbomframe cframeTemplate">
@@ -107,7 +110,8 @@
       </div>     
     </div>
     <div class="container">
-      <form class="needs-validation" novalidate onSubmit="return false" method="POST"
+      <form class="needs-validation" novalidate autocomplete="off"
+	    onSubmit="return false" method="POST"
 	    id="main_form">
 	<table class="table" id="main_table">
 	  <thead>
@@ -144,7 +148,8 @@
 	    <tr style="display:none" class="thead">
 	      <td>SPDXVersion</td>
 	      <td>
-		<input class="form-control has-default" type="text" name="SPDXVersion"
+		<input class="form-control has-default" type="text"
+		       name="SPDXVersion" 
 		       value="SPDX-2.1"  placeholder="SPDX-2.1">
 	      </td>
 	    </tr>
@@ -201,7 +206,9 @@
 	      </td>
 	    </tr>
 	    <tr>
-	      <td colspan="2">
+	      <td colspan="2" style="position:relative">
+		<div id="anouncer" class="alert alert-primary text-center">
+		</div>
 		<table class="table pcmp_table" id="PrimaryComponent">
 		  <thead>
 		    <tr class="remover">
@@ -224,29 +231,47 @@
 		  </thead><tbody>
 
 		    <tr>
-		      <td>Component Name</td>
+		      <td>Component Name
+			<br />
+			<input type="checkbox" class="check_cpe not_required"
+			       onchange="use_cpe(this)"/>
+			<a class="text-small" href="javascript:void(0)"
+			   title="Use CPE for Vulnerability CVE lookup" 
+			   onclick="$(this).prev().click()">
+			  Use CPE
+			</a>
+			<!--
+			<a href="https://nvd.nist.gov/products/cpe"
+			   title="Use CPE to lookup vulnerability from CVE data"
+			   target="_blank" class="circletext">
+			  ?</a> 
+			-->
+		      </td>
 		      <td>
-			<input class="form-control" type="text" placeholder="INFUSION"
-			       onchange="update_cmp_names(this)" id="PrimaryPackageName" 
-			       name="PackageName">
+			<input class="form-control PackageName noCPE" type="text"
+			       placeholder="INFUSION" onchange="update_cmp_names(this)"
+			       id="PrimaryPackageName" name="PackageName">
+			<div class="PackageNameCPE CPE d-none"></div>
 		      </td>
 		    </tr>
 		    <tr>
 		      <td>Version</td>
 		      <td>
-			<input class="form-control" type="text" placeholder="1.0"
-			       name="PackageVersion">
+			<input class="form-control PackageVersion noCPE" type="text"
+			       placeholder="1.0" name="PackageVersion">
+			<div class="PackageVersionCPE CPE d-none"></div>
 		      </td>
 		    </tr>
 		    <tr>
 		      <td>Supplier Name</td>
 		      <td>
-			<select name="SupplierType" class="form-control mauto">
+			<select name="SupplierType" class="form-control mauto SupplierType">
 			  <option>Organization</option>
 			  <option>Person</option>
 			</select>
-			<input class="form-control mauto" type="text" placeholder="ACME"
-			       name="SupplierName">
+			<input class="form-control mauto SupplierName noCPE" type="text"
+			       placeholder="ACME" name="SupplierName">
+			<div class="SupplierNameCPE CPE d-none"></div>
 		      </td>
 		    </tr>
 		    <tr>
@@ -448,9 +473,20 @@
 	      </td>
 	    </tr>
 	    <tr> 
-	      <td>Component Name</td>
+	      <td>Component Name
+		<br/>
+		<input type="checkbox" class="check_cpe not_required"
+		       onchange="use_cpe(this)"/>
+		<a class="text-small" href="javascript:void(0)"
+		   title="Use CPE for vulnerability CVE lookup" 
+		   onclick="$(this).prev().click()">
+		  CPE
+		</a>		
+	      </td>
 	      <td>
-		<input class="form-control" type="text" name="PackageName"
+		<div class="PackageNameCPE CPE d-none"></div>
+		<input class="form-control PackageName noCPE" type="text"
+		       name="PackageName"
 		       onchange="update_cmp_names(this)" 
 		       placeholder="Windows Embedded Standard 7"/>
 	      </td>
@@ -458,19 +494,23 @@
 	    <tr>
 	      <td>Version</td>
 	      <td>
-		<input class="form-control"  type="text" name="PackageVersion"
+		<input class="form-control PackageVersion noCPE"
+		       type="text" name="PackageVersion"
 		       placeholder="6.1.7601"/>
+		<div class="PackageVersionCPE CPE d-none"></div>
 	      </td>
 	    </tr>
 	    <tr>
 	      <td>Supplier Name</td>
 	      <td>
-		<select name="SupplierType" class="form-control mauto">
+		<select name="SupplierType" class="form-control mauto SupplierType">
 		  <option>Organization</option>
 		  <option>Person</option>
 		</select>
-		<input class="form-control mauto"  type="text" placeholder="Microsoft"
-		       name="SupplierName"/>
+		<div class="SupplierNameCPE CPE d-none"></div>
+		<input class="form-control mauto SupplierName noCPE"
+		       type="text"
+		       placeholder="Microsoft" name="SupplierName"/>
 	      </td>
 	    </tr>	
 	    <tr>
@@ -821,7 +861,7 @@
 	</div>
       </div>
     </div>    
-    <script src="script.js?v=1605976843"></script>
+    <script src="script.js?v=1621373446"></script>
     <input type="file" onchange="readFile(this,false)" style="opacity:0.01" id="spdxload">
     <canvas id="canvas" style="display:none"></canvas>
   </body>

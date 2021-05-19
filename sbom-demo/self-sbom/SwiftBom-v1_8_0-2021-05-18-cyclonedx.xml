@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<bom serialNumber="urn:uuid:54cf1e18-13cc-daaa-67fb-dfe1db91de44" 
+version = "1" xmlns="http://cyclonedx.org/schema/bom/1.2">
+	<metadata>
+	  <timestamp>2021-05-18T20:43:00Z</timestamp>
+	  <authors>
+	    <author>
+              <name>   Software Engineering Institute</name>
+              <email></email>
+	    </author>
+	  </authors>
+	  <component type="device" bom-ref="c9cf8f2c-7d9f-1e73-13ac-14e67a3febb5">
+	    <name>SwiftBom-v1.8.0</name>
+	    <version>1.8.0</version>
+	    <purl>pkg:supplier/%20%20%20SEI/SwiftBom-v1.8.0@1.8.0</purl>
+	  </component>
+	  <manufacture>
+	    <name>   SEI</name>
+	    <url></url>
+	    <contact>
+              <name>   SEI</name>
+              <email></email>
+	    </contact>
+	  </manufacture>
+	  <supplier>
+	    <name>
+	         SEI
+	    </name>
+	  </supplier>
+	</metadata>
+      <components>
+	<component type="library" bom-ref="01eb0bda-68d5-96af-fe10-9f5dddd450e5">
+	  <publisher>mariax</publisher>
+	  <name>script.js</name>
+	  <version>5.1.0</version>
+	  <purl>pkg:supplier/mariax/script.js@5.1.0</purl>
+	</component>
+      	<component type="library" bom-ref="4f92eec6-ca26-1bb5-aa59-ee6740e6068e">
+	  <publisher>   SEI</publisher>
+	  <name>css.css</name>
+	  <version>2.6.0</version>
+	  <purl>pkg:supplier/%20%20%20SEI/css.css@2.6.0</purl>
+	</component>
+      	<component type="library" bom-ref="0c99c786-916b-a00d-038f-0ad8a389bcb4">
+	  <publisher>   Bootstrap team</publisher>
+	  <name>Bootstrap JS</name>
+	  <version>4.3.1</version>
+	  <purl>pkg:supplier/%20%20%20Bootstrap%20team/Bootstrap%20JS@4.3.1</purl>
+	</component>
+      	<component type="library" bom-ref="7a71a87e-98f7-5da7-711d-7dd6b9c4291e">
+	  <publisher>   The jQuery Foundation</publisher>
+	  <name>jQuery</name>
+	  <version>3.5.1</version>
+	  <purl>pkg:supplier/%20%20%20The%20jQuery%20Foundation/jQuery@3.5.1</purl>
+	</component>
+      	<component type="library" bom-ref="ad5bb947-11f7-c2ea-d5ac-b83dc9f64a6c">
+	  <publisher>   Bootstrap Team</publisher>
+	  <name>Bootstrap CSS</name>
+	  <version>4.3.1</version>
+	  <purl>pkg:supplier/%20%20%20Bootstrap%20Team/Bootstrap%20CSS@4.3.1</purl>
+	</component>
+      	<component type="library" bom-ref="448be6fb-291b-36b1-5d97-4fa2ebc53414">
+	  <publisher>   Popperjs Open collective</publisher>
+	  <name>Popper JS</name>
+	  <version>1.14.7</version>
+	  <purl>pkg:supplier/%20%20%20Popperjs%20Open%20collective/Popper%20JS@1.14.7</purl>
+	</component>
+      	<component type="library" bom-ref="cc657ff6-a081-d7a3-f480-d8b03cd32bdb">
+	  <publisher>   Mark Bostock D3</publisher>
+	  <name>D3.js</name>
+	  <version>3.5.17</version>
+	  <purl>pkg:supplier/%20%20%20Mark%20Bostock%20D3/D3.js@3.5.17</purl>
+	</component>
+      	<component type="library" bom-ref="d01e1598-6e92-bab0-0c13-d7a5038fe0e7">
+	  <publisher>   SweetAlert Open collective</publisher>
+	  <name>SweetAlert js</name>
+	  <version>2.1.2</version>
+	  <purl>pkg:supplier/%20%20%20SweetAlert%20Open%20collective/SweetAlert%20js@2.1.2</purl>
+	</component>
+      	<component type="library" bom-ref="c7dc3da4-b5e9-bbbb-6f14-4677c1d23221">
+	  <publisher>  Stuart Knightley &#60;stuart@stuartk.com&#62;</publisher>
+	  <name>JSZip</name>
+	  <version>3.5.0</version>
+	  <purl>pkg:supplier/%20%20Stuart%20Knightley%20%26%2360%3Bstuart%40stuartk.com%26%2362%3B/JSZip@3.5.0</purl>
+	</component>
+      	<component type="library" bom-ref="da63d99a-ff84-30c2-36d5-2135dbe82031">
+	  <publisher>  SheetJS -- http://sheetjs.com</publisher>
+	  <name>xlsx.js</name>
+	  <version>0.17.0</version>
+	  <purl>pkg:supplier/%20%20SheetJS%20--%20http%3A%2F%2Fsheetjs.com/xlsx.js@0.17.0</purl>
+	</component>
+      	<component type="library" bom-ref="4145b3db-2dc2-dab5-fa40-e0c7d62fe2f9">
+	  <publisher>  Hosted https://geraintluff.github.io/sha256/</publisher>
+	  <name>sha256.js</name>
+	  <version>1.0</version>
+	  <purl>pkg:supplier/%20%20Hosted%20https%3A%2F%2Fgeraintluff.github.io%2Fsha256%2F/sha256.js@1.0</purl>
+	</component>
+      </components>
+<dependencies>
+<dependency ref="c9cf8f2c-7d9f-1e73-13ac-14e67a3febb5">
+  <dependency ref="01eb0bda-68d5-96af-fe10-9f5dddd450e5"/>
+  <dependency ref="4f92eec6-ca26-1bb5-aa59-ee6740e6068e"/>
+  <dependency ref="0c99c786-916b-a00d-038f-0ad8a389bcb4"/>
+  <dependency ref="7a71a87e-98f7-5da7-711d-7dd6b9c4291e"/>
+  <dependency ref="cc657ff6-a081-d7a3-f480-d8b03cd32bdb"/>
+  <dependency ref="d01e1598-6e92-bab0-0c13-d7a5038fe0e7"/>
+  <dependency ref="c7dc3da4-b5e9-bbbb-6f14-4677c1d23221"/>
+  <dependency ref="da63d99a-ff84-30c2-36d5-2135dbe82031"/>
+  <dependency ref="4145b3db-2dc2-dab5-fa40-e0c7d62fe2f9"/>
+</dependency>
+<dependency ref="0c99c786-916b-a00d-038f-0ad8a389bcb4">
+  <dependency ref="ad5bb947-11f7-c2ea-d5ac-b83dc9f64a6c"/>
+  <dependency ref="448be6fb-291b-36b1-5d97-4fa2ebc53414"/>
+</dependency>
+</dependencies>
+
+</bom>
