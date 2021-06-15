@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<bom serialNumber="urn:uuid:2efb0806-ae43-7c8e-625b-3870c32e38c2" 
+version = "1" xmlns="http://cyclonedx.org/schema/bom/1.2">
+	<metadata>
+	  <timestamp>2021-06-15T20:43:00Z</timestamp>
+	  <authors>
+	    <author>
+              <name>    Software Engineering Institute</name>
+              <email></email>
+	    </author>
+	  </authors>
+	  <component type="device" bom-ref="bc7422d4-20d4-fca1-c598-9fbb1afc33bd">
+	    <name>SwiftBom-v1.8.1</name>
+	    <version>1.8.1</version>
+	    <purl>pkg:supplier/%20%20%20%20SEI/SwiftBom-v1.8.1@1.8.1</purl>
+	  </component>
+	  <manufacture>
+	    <name>    SEI</name>
+	    <url></url>
+	    <contact>
+              <name>    SEI</name>
+              <email></email>
+	    </contact>
+	  </manufacture>
+	  <supplier>
+	    <name>
+	          SEI
+	    </name>
+	  </supplier>
+	</metadata>
+      <components>
+	<component type="library" bom-ref="dbdef8b1-a2c1-ef23-0a9a-4be7ef6c82c4">
+	  <publisher> mariax</publisher>
+	  <name>script.js</name>
+	  <version>5.1.1</version>
+	  <purl>pkg:supplier/%20mariax/script.js@5.1.1</purl>
+	</component>
+      	<component type="library" bom-ref="1eba0979-185e-306d-853e-243d81a6627d">
+	  <publisher>    SEI</publisher>
+	  <name>css.css</name>
+	  <version>2.6.1</version>
+	  <purl>pkg:supplier/%20%20%20%20SEI/css.css@2.6.1</purl>
+	</component>
+      	<component type="library" bom-ref="c421b2b6-b363-8cde-2c40-05fdc703252f">
+	  <publisher>    Bootstrap team</publisher>
+	  <name>Bootstrap JS</name>
+	  <version>4.3.1</version>
+	  <purl>pkg:supplier/%20%20%20%20Bootstrap%20team/Bootstrap%20JS@4.3.1</purl>
+	</component>
+      	<component type="library" bom-ref="802fe8fa-f7da-fc04-e7bd-9f06bc0ba9ff">
+	  <publisher>    The jQuery Foundation</publisher>
+	  <name>jQuery</name>
+	  <version>3.5.1</version>
+	  <purl>pkg:supplier/%20%20%20%20The%20jQuery%20Foundation/jQuery@3.5.1</purl>
+	</component>
+      	<component type="library" bom-ref="b842c9d1-158e-6434-47a1-6a56206c4557">
+	  <publisher>    Bootstrap Team</publisher>
+	  <name>Bootstrap CSS</name>
+	  <version>4.3.1</version>
+	  <purl>pkg:supplier/%20%20%20%20Bootstrap%20Team/Bootstrap%20CSS@4.3.1</purl>
+	</component>
+      	<component type="library" bom-ref="787659f7-c517-4162-6122-0b9e5179b14a">
+	  <publisher>    Popperjs Open collective</publisher>
+	  <name>Popper JS</name>
+	  <version>1.14.7</version>
+	  <purl>pkg:supplier/%20%20%20%20Popperjs%20Open%20collective/Popper%20JS@1.14.7</purl>
+	</component>
+      	<component type="library" bom-ref="c371d04b-7e60-a1c3-0f92-6c4d311ce5bb">
+	  <publisher>    Mark Bostock D3</publisher>
+	  <name>D3.js</name>
+	  <version>3.5.17</version>
+	  <purl>pkg:supplier/%20%20%20%20Mark%20Bostock%20D3/D3.js@3.5.17</purl>
+	</component>
+      	<component type="library" bom-ref="b7d0e5f7-b891-0cbd-e958-675b5934adc1">
+	  <publisher>    SweetAlert Open collective</publisher>
+	  <name>SweetAlert js</name>
+	  <version>2.1.2</version>
+	  <purl>pkg:supplier/%20%20%20%20SweetAlert%20Open%20collective/SweetAlert%20js@2.1.2</purl>
+	</component>
+      	<component type="library" bom-ref="c228dd51-3fbe-63e4-4fc3-f911c89be628">
+	  <publisher>   Stuart Knightley &#60;stuart@stuartk.com&#62;</publisher>
+	  <name>JSZip</name>
+	  <version>3.5.0</version>
+	  <purl>pkg:supplier/%20%20%20Stuart%20Knightley%20%26%2360%3Bstuart%40stuartk.com%26%2362%3B/JSZip@3.5.0</purl>
+	</component>
+      	<component type="library" bom-ref="43cae790-7b12-8385-5a03-f9f95558040c">
+	  <publisher>   SheetJS -- http://sheetjs.com</publisher>
+	  <name>xlsx.js</name>
+	  <version>0.17.0</version>
+	  <purl>pkg:supplier/%20%20%20SheetJS%20--%20http%3A%2F%2Fsheetjs.com/xlsx.js@0.17.0</purl>
+	</component>
+      	<component type="library" bom-ref="a145c5e2-3d27-2dea-4211-43f962879c16">
+	  <publisher>   Hosted https://geraintluff.github.io/sha256/</publisher>
+	  <name>sha256.js</name>
+	  <version>1.0</version>
+	  <purl>pkg:supplier/%20%20%20Hosted%20https%3A%2F%2Fgeraintluff.github.io%2Fsha256%2F/sha256.js@1.0</purl>
+	</component>
+      	<component type="library" bom-ref="39697fc6-cef2-3a12-b191-89262b1173b5">
+	  <publisher>nicolasbize.com/magicsuggest/</publisher>
+	  <name>MagicSuggest js</name>
+	  <version>2.1.6</version>
+	  <purl>pkg:supplier/nicolasbize.com%2Fmagicsuggest%2F/MagicSuggest%20js@2.1.6</purl>
+	</component>
+      	<component type="library" bom-ref="c9182350-bd8a-de2d-60bf-52153681593d">
+	  <publisher>nicolasbize.com/magicsuggest/</publisher>
+	  <name>MagicSuggest css</name>
+	  <version>2.1.6</version>
+	  <purl>pkg:supplier/nicolasbize.com%2Fmagicsuggest%2F/MagicSuggest%20css@2.1.6</purl>
+	</component>
+      </components>
+<dependencies>
+<dependency ref="bc7422d4-20d4-fca1-c598-9fbb1afc33bd">
+  <dependency ref="dbdef8b1-a2c1-ef23-0a9a-4be7ef6c82c4"/>
+  <dependency ref="1eba0979-185e-306d-853e-243d81a6627d"/>
+  <dependency ref="c421b2b6-b363-8cde-2c40-05fdc703252f"/>
+  <dependency ref="802fe8fa-f7da-fc04-e7bd-9f06bc0ba9ff"/>
+  <dependency ref="c371d04b-7e60-a1c3-0f92-6c4d311ce5bb"/>
+  <dependency ref="b7d0e5f7-b891-0cbd-e958-675b5934adc1"/>
+  <dependency ref="c228dd51-3fbe-63e4-4fc3-f911c89be628"/>
+  <dependency ref="43cae790-7b12-8385-5a03-f9f95558040c"/>
+  <dependency ref="a145c5e2-3d27-2dea-4211-43f962879c16"/>
+  <dependency ref="39697fc6-cef2-3a12-b191-89262b1173b5"/>
+  <dependency ref="c9182350-bd8a-de2d-60bf-52153681593d"/>
+</dependency>
+<dependency ref="c421b2b6-b363-8cde-2c40-05fdc703252f">
+  <dependency ref="b842c9d1-158e-6434-47a1-6a56206c4557"/>
+  <dependency ref="787659f7-c517-4162-6122-0b9e5179b14a"/>
+</dependency>
+</dependencies>
+
+</bom>

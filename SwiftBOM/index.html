@@ -4,7 +4,7 @@
     <title>SwiftBOM- SBOM generator for demo and PoCs</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="referrer" content="no-referrer" />
-    <meta name="version" content="1.8.0" />
+    <meta name="version" content="1.8.1" />
     <meta name="generator" content="SBOM-Demo 1.8 - SEI" />
     <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
     <link rel="stylesheet"
@@ -28,7 +28,7 @@
     <script src="sha256.js" async defer></script>
     <link href="magicsuggest-min.css" rel="stylesheet">
     <script src="magicsuggest-min.js" async defer></script>
-    <link rel="stylesheet" href="css.css?v=1621374112">
+    <link rel="stylesheet" href="css.css?v=1623706983">
   </head>
   <body class="blackbody">
     <div class="coverpage childbomframe cframeTemplate">
@@ -123,7 +123,7 @@
 		<a href="javascript:void(0)" onclick="do_example()">Load Example</a>
 		| &nbsp; 
 		<a href="javascript:void(0)" onclick="$('#spdxload').click()"
-		  alt="Import SPDX or Excel file using the base template">
+		   alt="Import SPDX or Excel file using the base template">
 		  Import SPDX/Excel</a>
 		<br />
 		<div class="tright">
@@ -241,11 +241,11 @@
 			  Use CPE
 			</a>
 			<!--
-			<a href="https://nvd.nist.gov/products/cpe"
-			   title="Use CPE to lookup vulnerability from CVE data"
-			   target="_blank" class="circletext">
-			  ?</a> 
-			-->
+			    <a href="https://nvd.nist.gov/products/cpe"
+			       title="Use CPE to lookup vulnerability from CVE data"
+			       target="_blank" class="circletext">
+			      ?</a> 
+			    -->
 		      </td>
 		      <td>
 			<input class="form-control PackageName noCPE" type="text"
@@ -304,10 +304,43 @@
 		    <tr class="spdx-lite d-none">
 		      <td>Files Analyzed</td>
 		      <td>
-			<select name="FilesAnalyzed" class="form-control">
+			<select name="FilesAnalyzed" class="form-control"
+				onchange="checksummer(this)">
 			  <option selected>false</option>
 			  <option>true</option>
 			</select>
+		      </td>
+		    </tr>
+		    <tr>
+		      <td>Component Checksum</td>
+		      <td>
+		<select name="ChecksumType"
+			onchange="checksumtype(this)"
+			class="not_required form-control scool">
+		  <option value="">None</option>
+		  <option>File</option>
+		  <option>Package</option>
+		</select>
+		<select name="FileChecksumAlgorithm"
+			onchange="algvalue(this)"
+			class="form-control mauto not_required FileChecksumAlgorithm d-none">
+		  <option value="">Select</option>
+		  <option>SHA1</option>
+		  <option>SHA224</option>
+		  <option>SHA256</option>
+		  <option>SHA384</option>
+		  <option>SHA512</option>
+		  <option>MD2</option>
+		  <option>MD4</option>
+		  <option>MD5</option>
+		  <option>MD6</option>
+		</select>
+		&nbsp; 
+		<input type="text" name="FileChecksumv"
+			       onchange="checksumvalid(this)"
+			       class="form-control not_required mauto FileChecksumv d-none"/>
+			<input type="hidden" name="FileChecksum"
+			       class="not_required spdx-lite-field mauto FileChecksum"/>			       
 		      </td>
 		    </tr>
 		    <tr class="spdx-lite d-none">
@@ -465,7 +498,7 @@
 			data-toggle="tooltip" data-placement="top" title=""
 			onclick="viewChild(this)" data-original-title="View Full Child SBOM">
 		  View Child SBOM
-		  </button>
+		</button>
 		<a href="javascript:void(0)" class="circletext"
 		   title="Uncheck this if your SBOM is External Reference" 
 		   onclick="swal('External or Embed?','Check this if your child BOM is an External Reference and not embedded as a component into this SBOM')">
@@ -540,15 +573,49 @@
 		       placeholder="https://github.com/MySoftware/Mypackage.exe">
 	      </td>
 	    </tr>
-	    <tr class="spdx-lite d-none">
-	      <td>Files Analyzed</td>
+		    <tr class="spdx-lite d-none">
+		      <td>Files Analyzed</td>
+		      <td>
+			<select name="FilesAnalyzed" class="form-control"
+				onchange="checksummer(this)">
+			  <option selected>false</option>
+			  <option>true</option>
+			</select>
+		      </td>
+		    </tr>	    
+	    <tr>
+	      <td>Component Checksum</td>
 	      <td>
-		<select name="FilesAnalyzed" class="form-control">
-		  <option selected>false</option>
-		  <option>true</option>
+		
+		<select name="ChecksumType"
+			onchange="checksumtype(this)"
+			class="not_required form-control scool">
+		  <option value="">None</option>
+		  <option>File</option>
+		  <option>Package</option>
 		</select>
+		<select name="FileChecksumAlgorithm"
+			onchange="algvalue(this)"
+			class="form-control mauto not_required FileChecksumAlgorithm d-none">
+		  <option value="">Select</option>
+		  <option>SHA1</option>
+		  <option>SHA224</option>
+		  <option>SHA256</option>
+		  <option>SHA384</option>
+		  <option>SHA512</option>
+		  <option>MD2</option>
+		  <option>MD4</option>
+		  <option>MD5</option>
+		  <option>MD6</option>
+		</select>
+		&nbsp; 
+		<input type="text" name="FileChecksumv"
+		       onchange="checksumvalid(this)"
+		       class="form-control not_required mauto FileChecksumv d-none"/>
+		<input type="hidden" name="FileChecksum"
+		       class="not_required spdx-lite-field mauto FileChecksum"/>			       
 	      </td>
-	    </tr>
+	    </tr>	    
 	    <tr class="spdx-lite d-none">
 	      <td>Package Home Page</td>
 	      <td>
@@ -849,7 +916,7 @@
 		  If you have trouble using this software or desire a feature, please reach out
 		  using Github's <i>"Issues"</i>.
 		</li>
-	       </ul>
+	      </ul>
 	      
 	      <h4>Privacy and Data Security</h4>
 	      None of the data you enter or simulate is sent or stored at the server.  The data is solely on the client-side.  The tools to generate SPDX,SWID and CycloneDX can all work even if your browser is disconnected from the network after loading the website.
@@ -861,7 +928,7 @@
 	</div>
       </div>
     </div>    
-    <script src="script.js?v=1621373446"></script>
+    <script src="script.js?v=1623706586"></script>
     <input type="file" onchange="readFile(this,false)" style="opacity:0.01" id="spdxload">
     <canvas id="canvas" style="display:none"></canvas>
   </body>

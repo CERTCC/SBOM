@@ -1,5 +1,5 @@
 /* SBOM-Demo script.js version 5.1.0 ability to export CyconeDX as JSON and Graph as PNG  */
-const _version = '5.1.0'
+const _version = '5.1.1'
 /* Internal JSON representation */
 var fjson
 var swidHead = '<?xml version="1.0" ?>\n'
@@ -83,6 +83,69 @@ $(function () {
 	}
     }
 })
+function checksumtype(w) {
+    var wtable = $(w).closest('table')
+    if(w.selectedIndex > 0) {
+	/* Fake a required field*/
+	$(w).addClass('fake-required')
+	/* Decide whether this is file or packagechecksum */
+	wtable.find('.FileChecksum').attr({name: $(w).val()+"Checksum"})
+	wtable.find('.FileChecksum').removeClass('not_required')
+	wtable.find('.FileChecksumv').removeClass('not_required d-none')
+	wtable.find('.FileChecksumAlgorithm').removeClass('not_required d-none')
+    } else {
+	$(w).removeClass('fake-required')
+	wtable.find('.FileChecksum').addClass('not_required')
+	wtable.find('.FileChecksumv').addClass('not_required d-none')
+	wtable.find('.FileChecksumAlgorithm').addClass('not_required d-none')
+    }
+}
+function checksumvalid(w) {
+    if($(w)[0].checkValidity()) {
+	var wtable = $(w).closest('table')
+	wtable.find('.invalid-feedback').remove()
+	var alg = wtable.find(".FileChecksumAlgorithm").val()
+	var val = wtable.find(".FileChecksumv").val()
+	wtable.find(".FileChecksum").val(alg+": "+val)
+    } else {
+	add_invalid_feedback(w,"Checksum value is not correct")
+    }	
+}
+function checksummer(w) {
+    var wtable = $(w).closest('table')
+    wtable.find('.invalid-feedback').remove()
+    if(w.selectedIndex > 0) {
+	wtable.find('.FileChecksum').removeClass('not_required')
+	wtable.find('.FileChecksumv').removeClass('not_required')	
+	wtable.find('.FileChecksumAlgorithm').removeClass('not_required')
+    }
+    else {
+	wtable.find('.FileChecksum').addClass('not_required')
+	wtable.find('.FileChecksumv').addClass('not_required')
+	wtable.find('.FileChecksumAlgorithm').addClass('not_required')
+    }
+}
+function algvalue(w) {
+    var wtable = $(w).closest('table')
+    wtable.find('.invalid-feedback').remove()    
+    var alg = $(w).val()
+    //SHA1, SHA224, SHA256, SHA384, SHA512, MD2, MD4, MD5, MD6    
+    var algmap = {SHA1: "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+		  SHA224: "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f",
+		  SHA384: "38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b",
+		  SHA512: "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e",
+		  MD2: "1bee69a46ba811185c194762abaeae90",
+		  MD4: "1bee69a46ba811185c194762abaeae90",
+		  MD5: "1bee69a46ba811185c194762abaeae90",
+		  MD6: "1bee69a46ba811185c194762abaeae90"}		  
+    if(alg in algmap) {
+	var algval = wtable.find(".FileChecksumv")
+	var sample = algmap[alg]
+	var pattern = "[0-9a-f]{"+String(sample.length)+"}"
+	algval.attr({placeholder: sample, size: sample.length,
+		     pattern: pattern})
+    }
+}
 function wtoggle(wclass) {
     $('body').toggleClass(wclass)
     $('iframe').each((i,w) => w.contentWindow.$('body').toggleClass('blackbody'))
@@ -860,6 +923,10 @@ function generate_spdx() {
 	$('#dlsvg').hide()
 	$('#dlzip').hide()
     }
+    /* Clear past created zip files data block*/
+    $('#dlzip').attr('href','javascript:void()')
+    $('#dlzip').removeAttr('download')
+    $('#dlzip').attr('onclick','download_zip()')
     //$('.vul_template').not('.d-none').remove()
     $('.scontent').hide()
     var spdx = ""
@@ -1735,7 +1802,7 @@ function do_download_zip() {
 		sessionStorage.setItem("zip",content)
 		console.log("done")
 		var zcontent = "data:application/octet-stream;base64,"+content
-	    triggerDownload(zcontent,zname+".zip",'#dlzip')
+		triggerDownload(zcontent,zname+".zip",'#dlzip')
 		$('#dlzip').removeClass('processing')	    
 	    });
     },timer)

@@ -1,8 +1,8 @@
 # SwiftBOM SBOM demo tool  
 
-SwiftBOM a SBOM generator tool [here](./sbom-demo/) is part of CERT's work in supporting SBOM generation efforts for Proof-of-Concepts and Demo purposes.  This tool is currently being explored by  [Healthcare Proof of Concept](https://www.ntia.gov/files/ntia/publications/ntia_sbom_healthcare_poc_report_2019_1001.pdf) teams for their PoC efforts. 
+SwiftBOM a SBOM generator tool [here](https://democert.org/sbom/) is part of CERT's work in supporting SBOM generation efforts for Proof-of-Concepts and Demo purposes.  This tool is currently being explored by  [Healthcare Proof of Concept](https://www.ntia.gov/files/ntia/publications/ntia_sbom_healthcare_poc_report_2019_1001.pdf) teams for their PoC efforts. 
 
-The [SwiftBOM](https://sbom.democert.org/sbom/) has some live demo that you can run to see SBOM generation supported by the tool.  The tool also has some limited import capability to accept SBOM input and provide multiple format outputs.
+The [SwiftBOM](https://democert.org/sbom/) has some live demo that you can run to see SBOM generation supported by the tool.  The tool also has some limited import capability to accept SBOM input and provide multiple format outputs.
 
 
 # SBOM Formats  
