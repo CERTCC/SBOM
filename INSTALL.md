@@ -11,7 +11,7 @@ a private server such as a server accessible only to an internal LAN
 ``` 
 #Nginx  
     location ^~ /sbom/ {  
-       root         /var/www/SBOM/sbom-demo/;  
+       root         /var/www/SBOM/SwiftBOM/;  
    }  
   ```
 
