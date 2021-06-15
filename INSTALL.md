@@ -17,8 +17,8 @@ a private server such as a server accessible only to an internal LAN
 
  ```
  #Apache
- Alias /sbom/ "/var/www/SBOM/sbom-demo/"
- <Directory "/var/www/SBOM/sbom-demo/">
+ Alias /sbom/ "/var/www/SBOM/SwiftBOM/"
+ <Directory "/var/www/SBOM/SwiftBOM/">
    Options Indexes FollowSymLinks
    AllowOverride None
    Required all granted
