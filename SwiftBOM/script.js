@@ -1,13 +1,74 @@
-/* SBOM-Demo script.js version 5.1.0 ability to export CyconeDX as JSON and Graph as PNG  */
-const _version = '5.1.1'
+/* SBOM-Demo script.js version 5.2.4 ability to export CyconeDX as JSON and Graph as PNG  */
+const _version = '5.2.4'
+$('#version').html("("+_version+")")
+$('#Created').val((new Date()).toISOString().replace("Z",""))
 /* Internal JSON representation */
 var fjson
+var spdxJson = {
+    "SPDXID" : "$SPDXID",
+    "spdxVersion" : "$SPDXVersion",
+    "creationInfo" : {
+	"comment" : "$CreatorComment",
+	"created" : "$Created",
+	"creators" : [ "$CreatorType: $Creator" ]
+    },
+    "name" : "$DocumentName",
+    "dataLicense" : "$DataLicense",
+    "documentNamespace" : "http://www.hospitalproducts.acme",
+    "documentDescribes" : [ "SPDXRef-$EscPackageName" ],
+    "packages" : [],
+    "files": [],
+    "relationships": []
+}
+var $packages = {
+    "SPDXID": "SPDXRef-$EscPackageName",
+    "comment": "PURL is pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion $AddPackageComment",
+    "copyrightText": "$PackageCopyrightText",
+    "downloadLocation": "$PackageDownloadLocation",
+    "externalRefs": [
+	{
+	    "referenceCategory": "PACKAGE_MANAGER",
+	    "referenceLocator": "pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion",
+	    "referenceType": "purl"
+	}
+    ],
+    "filesAnalyzed": "$FilesAnalyzed",
+    "hasFiles": [
+	"SPDXRef-File-$BomRef"
+    ],
+    "licenseConcluded": "$PackageLicenseConcluded",
+    "licenseDeclared": "$PackageLicenseDeclared",
+    "name": "$PackageName",
+    "supplier": "$SupplierType: $SupplierName",
+    "versionInfo": "$PackageVersion"
+}
+var $files = {
+    "SPDXID": "SPDXRef-File-$BomRef",
+    "checksums": [
+	{
+	    "algorithm": "$ChecksumAlgorithm",
+	    "checksumValue": "$Checksumv"
+	}
+    ],
+    "fileName": "$PackageFileName"
+}
+var $relationships = {
+    "relatedSpdxElement": "$RelChild",
+    "relationshipType": "$RelType",
+    "spdxElementId": "$RelParent"
+}
+/* cpeType example   cpe23Type */
+var $cpeReference = {
+    "referenceCategory": "SECURITY",
+    "referenceLocator": "$PackageCPE",
+    referenceType: "http://spdx.org/rdf/references/$cpeType"
+}
 var swidHead = '<?xml version="1.0" ?>\n'
 var swidTail = '\n</SoftwareIdentity>'
 var cyclonedxSerialNumber = "urn:uuid:"+generate_uuid()
 var cyclonedxHead = '<?xml version="1.0"?>\n<bom '+
     'serialNumber="'+cyclonedxSerialNumber+'" \n'+
-    'version = "1" '+
+    'version="1" '+
     'xmlns="http://cyclonedx.org/schema/bom/1.2">\n'
 var cyclonedxTail = '\n</bom>\n'
 var cyclonedxJson = {
@@ -25,7 +86,7 @@ var $metadata = {
 	{"name": "$Creator"},
     ],
     "component": {
-	"type": "device",
+	"type": "application",
 	"bom-ref": "$BomRef",
 	"name": "$PackageName",
 	"purl": "pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion",
@@ -53,7 +114,96 @@ var $dependency = {
     ]
 }
 var cyclonedxdeps = ''
+/* Option Cylconedx element, add hashes if available */
+var cyclonedxhash = "<hashes>\n<hash alg=\"$ChecksumAlgorithm\">$Checksumv</hash>\n</hashes>"
+var cyclonedxhashj = {"hashes": [{
+    "alg": "$ChecksumAlgorithm",
+    "content": "$Checksumv"
+}]}
+/* CSAF advisory for this SPDX document 
+   CSAF look like 
+{"document": csaf_doc, 
+ "vulnerabilities": [csaf_vuls],
+ "product_tree": { "branches": [csaf_products] }
+}
+*/
+var csaf_doc = {
+    "category": "vex",
+    "csaf_version": "2.0",
+    "notes": [
+	{
+	    "category": "summary",
+	    "text": "Vulnerability information for SBOM $DocumentName ",
+	    "title": "Summary"
+	},
+	{
+	    "category": "legal_disclaimer",
+	    "text": "THIS DOCUMENT IS PROVIDED ON AN \"AS IS\" BASIS AND DOES NOT IMPLY ANY KIND OF GUARANTEE OR WARRANTY, INCLUDING THE WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE. YOUR USE OF THE INFORMATION ON THE DOCUMENT OR MATERIALS LINKED FROM THE DOCUMENT IS AT YOUR OWN RISK.",
+	    "title": "Legal Disclaimer"
+	}
+    ],
+    "publisher": {
+	"category": "coordinator",
+	"contact_details": "Email: cert@cert.org, Phone: +1412 268 5800",
+	"issuing_authority": "CERT/CC under DHS/CISA https://www.cisa.gov/cybersecurity also see https://kb.cert.org/ ",
+	"name": "CERT/CC",
+	"namespace": "https://kb.cert.org/"
+    },
+    "references": [
+	{
+	    "url": "https://vuls.cert.org/confluence/display/Wiki/Vulnerability+Disclosure+Policy",
+	    "summary": "CERT/CC vulnerability disclosure policy"
+	}
+    ],
+    "title": "SBOM Reference Advisory for $DocumentName",
+    "tracking": {
+	"current_release_date": "$Created",
+	"generator": {
+	    "engine": {
+		"name": "SwiftBOM",
+		"version": _version
+	    }
+	},
+	"id": "SwiftBOM-CSAF-$DocumentName",
+	"initial_release_date": "$Created",
+	"revision_history": [
+	    {
+		"date": "$Created",
+		"number": "1.0.0",
+		"summary": "Draft for demo purposes"
+	    }
+	],
+	"status": "draft",
+	"version": "1.0.0"
+    }
+}
 
+var csaf_vuls = { 
+    "title": "$description",
+    "cve": "$cve",
+    "product_status": {
+	"known_affected": ["CSAFPID-$BomRef"]
+    }
+}
+var csaf_products = { "category": "vendor",
+		       "name": "$SupplierName",
+		       "branches": [
+			   {
+			       "category": "product_name",
+			       "name": "$PackageName",
+			       "branches": [
+				   {
+				       "category": "product_version",
+				       "name": "$PackageVersion",
+				       "product": {
+					   "product_id": "CSAFPID-$BomRef",
+					   "name": "$SupplierName $PackageName $PackageVersion"
+				       }
+				   }
+			       ]
+			   }
+		       ]
+		    }
 var diagonal,tree,svg,duration,root
 var treeData = []
 var vul_data = []
@@ -64,7 +214,17 @@ var cpe_data = []
 $.get("cpe_lookup/vendors_unique.txt").done(function(x) {
     cpe_data = x.replace(/\"/g,'').split('\n')
 })
-
+function deepstate(obj,dir) {
+    var xobj = obj
+    var path = dir.split(".")
+    for(var i=0; i<path.length; i++) {
+	if(path[i] in xobj)
+	    xobj = xobj[path[i]]
+        else
+	    return null
+    }
+    return xobj
+}
 /* Allow these to override URL and other validators */
 var DefaultEmpty = {"NONE":true,"NOASSERTION":true}
 /* jQuery document.ready equivalent or body onload*/
@@ -83,47 +243,53 @@ $(function () {
 	}
     }
 })
+function checksummer(w) {
+    var wtable = $(w).closest('table');
+    wtable.find('.invalid-feedback').remove();
+    if(w.selectedIndex > 0)
+	wtable.find('.ChecksumType').val('File').trigger('change');
+    else
+	wtable.find('.ChecksumType').val('').trigger('change');
+}
 function checksumtype(w) {
     var wtable = $(w).closest('table')
     if(w.selectedIndex > 0) {
 	/* Fake a required field*/
 	$(w).addClass('fake-required')
 	/* Decide whether this is file or packagechecksum */
-	wtable.find('.FileChecksum').attr({name: $(w).val()+"Checksum"})
-	wtable.find('.FileChecksum').removeClass('not_required')
-	wtable.find('.FileChecksumv').removeClass('not_required d-none')
-	wtable.find('.FileChecksumAlgorithm').removeClass('not_required d-none')
+	//wtable.find('.FileChecksum').attr({name: $(w).val()+"Checksum"})
+	wtable.find('.Checksumv').removeClass('not_required d-none')
+	wtable.find('.ChecksumAlgorithm').removeClass('not_required d-none')
+	if(w.selectedIndex == 1) { /* File Checksum */
+	    wtable.find('.FileChecksum').removeClass('not_required')
+	    wtable.find('.FileName').removeClass('not_required d-none')
+	    wtable.find('.PackageChecksum').addClass('not_required')
+	    wtable.find('.PackageChecksum').val('')
+	    wtable.find('.PackageFileName').addClass('not_required d-none')
+	} else if(w.selectedIndex == 2) { /* Package Checksum */
+	    wtable.find('.FileChecksum').val()	    
+	    wtable.find('.FileChecksum').addClass('not_required')
+	    wtable.find('.FileName').addClass('not_required d-none')
+	    wtable.find('.PackageChecksum').removeClass('not_required')
+	    wtable.find('.PackageFileName').removeClass('not_required d-none')	    
+	}
     } else {
 	$(w).removeClass('fake-required')
-	wtable.find('.FileChecksum').addClass('not_required')
-	wtable.find('.FileChecksumv').addClass('not_required d-none')
-	wtable.find('.FileChecksumAlgorithm').addClass('not_required d-none')
+	wtable.find('.ChecksumRelated').addClass('not_required d-none')
     }
 }
 function checksumvalid(w) {
     if($(w)[0].checkValidity()) {
 	var wtable = $(w).closest('table')
 	wtable.find('.invalid-feedback').remove()
-	var alg = wtable.find(".FileChecksumAlgorithm").val()
-	var val = wtable.find(".FileChecksumv").val()
-	wtable.find(".FileChecksum").val(alg+": "+val)
+	var alg = wtable.find(".ChecksumAlgorithm").val()
+	var val = wtable.find(".Checksumv").val()
+	/* Find if it is a file or a package that was analyzed and given signature*/
+	var fileorpackage = wtable.find(".ChecksumType").val()
+	wtable.find("."+fileorpackage+"Checksum").val(alg+": "+val)
     } else {
 	add_invalid_feedback(w,"Checksum value is not correct")
     }	
-}
-function checksummer(w) {
-    var wtable = $(w).closest('table')
-    wtable.find('.invalid-feedback').remove()
-    if(w.selectedIndex > 0) {
-	wtable.find('.FileChecksum').removeClass('not_required')
-	wtable.find('.FileChecksumv').removeClass('not_required')	
-	wtable.find('.FileChecksumAlgorithm').removeClass('not_required')
-    }
-    else {
-	wtable.find('.FileChecksum').addClass('not_required')
-	wtable.find('.FileChecksumv').addClass('not_required')
-	wtable.find('.FileChecksumAlgorithm').addClass('not_required')
-    }
 }
 function algvalue(w) {
     var wtable = $(w).closest('table')
@@ -132,6 +298,7 @@ function algvalue(w) {
     //SHA1, SHA224, SHA256, SHA384, SHA512, MD2, MD4, MD5, MD6    
     var algmap = {SHA1: "da39a3ee5e6b4b0d3255bfef95601890afd80709",
 		  SHA224: "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f",
+		  SHA256: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
 		  SHA384: "38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b",
 		  SHA512: "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e",
 		  MD2: "1bee69a46ba811185c194762abaeae90",
@@ -139,7 +306,7 @@ function algvalue(w) {
 		  MD5: "1bee69a46ba811185c194762abaeae90",
 		  MD6: "1bee69a46ba811185c194762abaeae90"}		  
     if(alg in algmap) {
-	var algval = wtable.find(".FileChecksumv")
+	var algval = wtable.find(".Checksumv")
 	var sample = algmap[alg]
 	var pattern = "[0-9a-f]{"+String(sample.length)+"}"
 	algval.attr({placeholder: sample, size: sample.length,
@@ -197,7 +364,28 @@ function get_versions(m,w,v) {
 	wtable.data('cve',sversions)
 	showCPEVuls(sversions,wtable)
 	$(ms).on('selectionchange', function(_e,_m,r){
-	    $('.CPEVuls').remove()	    
+	    $('.CPEVuls').remove()
+	    $('.spdxcpe').remove()
+	    //console.log(arguments)
+	    //console.log(wtable)
+	    console.log(r)
+	    if(('cpe_id' in r[0]) && (r[0].cpe_id.indexOf("cpe:2") > -1)) {
+		/* cpe:2.3:a:microsoft:sql_server:2005:sp4:express_advanced_services:*:*:*:*:*
+		   Add CPE id as external reference to SPDX
+		   ExternalRef: SECURITY cpe23Type cpe:2.3:a:pivotal_software:spring_framework:4.1.0:*:*:*:*:*:*:* */
+		var cpe_id = r[0].cpe_id
+		var cpe_spdx = "cpe23Type"
+		if(cpe_id.indexOf("cpe:2.2") > -1) {
+		    cpe_spdx = "cpe22Type"
+		}
+		$('<input>').attr({
+		    type: 'hidden',
+		    'class': 'ExternalRef spdx-lite-field not-required spdxcpe',
+		    name: 'ExternalRef',
+		    value: "SECURITY "+cpe_spdx+" "+cpe_id
+		}).appendTo(wtable)
+		wtable.data('custom_cyclonedx',{cpe:cpe_id})
+	    }
 	    if(r.length > 0) {
 		showCPEVuls(r,wtable)
 	    } else {
@@ -214,24 +402,37 @@ function view_cve(aref) {
 }
 function add_cve(cb) {
     var cve = $(cb).closest('tr').data('cve')
-    if(!cve)
-	return
-    vul_data.push({cve:cve.cve_id,cvss_score: parseInt(cve.cvss_v3_score) ? cve.cvss_v3_score : cvss_v2_score,vul_part:-1})
-    
+    var graphid = $(cb).closest('table').data('graphid')
+    if(cb.checked) {
+	if(!cve)
+	    return
+	if(!graphid)
+	    return
+	vul_data.push({cve:cve.cve_id,cvss_score: parseInt(cve.cvss_v3_score) ? cve.cvss_v3_score : cve.cvss_v2_score,vul_part:graphid})
+    } else {
+	var rvid = vul_data.findIndex(function(x) {
+	    return x.cve == cve.cve_id})
+	console.log(rvid)
+	if(rvid > -1)
+	    vul_data.splice(rvid,1)
+    }
+    $('#vul_table .vul_template').not('.d-none').remove()
+    load_vuls()
+    simulate_vuls()
 }
 function showCPEVuls(tvuls,wtable) {
+    wtable.find(".CPEVuls").remove()
     if((typeof(tvuls) != "undefined") && (tvuls.length > 0)) {
 	var ftable = '<tr class="CPEVuls text-warning"><td colspan="2" align="center"> <i>CPE matched vulnerabilities ['+String(tvuls.length)+']</i></td></tr>'
 	wtable.append(ftable)	
 	for (var i=0; i< tvuls.length; i++) {
 	    var tvul = tvuls[i]
-	    var cuid = generate_uuid()
-	    ftable = '<tr class="CPE CPEVuls text-warning '+cuid+'"><td colspan="2"><input type="checkbox" alt="Include" onclick="add_cve(this)" title="Include" class="not_required"> <a class="btn btn-outline-danger" onclick="view_cve(this)">'+tvul.cve_id+'</a> for version: <b>'+tvul.version +'</b>, edition: <b>'+tvul.edition+'</b>, with CVSS(v2 & v3) score: <b>'+tvul.cvss_v2_score+' & '+tvul.cvss_v3_score+'</b> </td></tr>'
+	    ftable = '<tr class="CPE CPEVuls text-warning '+tvul.cve_id+'"><td colspan="2"><div><input type="checkbox" alt="Include" onclick="add_cve(this)" title="Include" class="not_required"> <a class="btn btn-outline-danger" onclick="view_cve(this)">'+tvul.cve_id+'</a> for CPE version: <b>'+tvul.version +'</b>, edition: <b>'+tvul.edition+'</b>, with CVSS(v2 & v3) score: <b>'+tvul.cvss_v2_score+' & '+tvul.cvss_v3_score+'</b> </div></td></tr>'
 	    wtable.append(ftable)
-	    $('.'+cuid).data('cve',tvul)
+	    $('.'+tvul.cve_id).data('cve',tvul)
 	}
     }
-	
+    
 }    
 
 function get_products(m,w) {
@@ -335,6 +536,26 @@ function clearall() {
 		 location.reload()
 	 })
 }
+function removeall_cmps() {
+    if($("tr.nmk").length)
+	swal({title: "Are you sure?",
+	      text: "All Entries will be cleared!",
+	      icon: "warning",
+	      buttons: true,
+	      dangerMode: true,
+	     }).then((willDelete) => {
+		 if (willDelete) {
+		     $("tr.nmk").remove()
+		     $(".remove-all").addClass("d-none")
+		     npmchildren = []
+		     Remaining = 0
+		     Depth = 0
+		     npms = {}
+		     pips = {}
+		     pipchildren = []
+		 }
+	     })
+}
 function enablecbom(w){
     $(w).closest("table").find(".form-control").prop("disabled",w.checked)
     if(w.checked) 
@@ -372,6 +593,10 @@ function OBJtoXML(obj) {
 
 
 function readFile(input,mchild) {
+    if(input.files.length > 1) {
+	swal("Failed!","Upload accepts only one file at a time!","error")
+	return
+    }
     var file = input.files[0]
     if(!('name' in file)) {
 	swal("Failed!","Failed to collect file name on upload!","error")
@@ -415,17 +640,17 @@ function readFile(input,mchild) {
 		/* New method uses iframe postMessage*/
 		cWindow.postMessage({childSPDX:reader.result,parentcId:cfPid})
 		/* Legacy method for sending data to child frame 
-		ciFrame.attr("onload",function() {
-		    cWindow.tempValue = reader.result
-		    cWindow.tempId = cfPid
-		    //parse_spdx(reader.result,null,false,false)
-		})
+		   ciFrame.attr("onload",function() {
+		   cWindow.tempValue = reader.result
+		   cWindow.tempId = cfPid
+		   //parse_spdx(reader.result,null,false,false)
+		   })
 		*/
 		//$('#'+cframeId).find(".iframeTemplate")[0].contentWindow
 		
 		/* 
-		setTimeout(function() {
-		    cWindow.parse_spdx(reader.result,null,false,false) }, 4000)
+		   setTimeout(function() {
+		   cWindow.parse_spdx(reader.result,null,false,false) }, 4000)
 		*/
 		return
 	    }
@@ -435,24 +660,31 @@ function readFile(input,mchild) {
 		    text: "Adding a childbom as NOT External Reference will "+
 			"replace the current component and all its child components "+
 			" of this element!",
-		icon: "warning",
-		buttons: true,
-		dangerMode: true,
-	    }).then((willDelete) => {
-		if (willDelete) {
-		    var componentId = qt.attr("id")
-		    recurse_remove(componentId)
-		    parse_spdx(reader.result,mchild,input,false)
-		} else {
-		    swal("Your SBOM is left as is!");
-		}
-	    });
+		    icon: "warning",
+		    buttons: true,
+		    dangerMode: true,
+		}).then((willDelete) => {
+		    if (willDelete) {
+			var componentId = qt.attr("id")
+			recurse_remove(componentId)
+			parse_spdx(reader.result,mchild,input,false)
+		    } else {
+			swal("Your SBOM is left as is!");
+		    }
+		});
 	    }	
 	} else {
-	    if (file.name.toLowerCase().endsWith(".xml")) {
+	    var fnames = file.name.toLowerCase()
+	    if(fnames == "package.json") {
+		return npm_package_json(reader.result)
+	    }
+	    if(fnames.indexOf("requirements") == 0) {
+		return pip_require(reader.result,false)
+	    }
+	    if (fnames.endsWith(".xml")) {
 		/* Assume Cyclone DX or SWID */
 	    }
-	    else if (file.name.toLowerCase().endsWith(".json")) {
+	    else if (fnames.endsWith(".json")) {
 		/* Assume Cyclone DX JSON */
 	    }	    
 	    else 
@@ -492,24 +724,45 @@ function recurse_remove(componentId) {
 	}
     })
 }
-
 function do_example() {
     $('#main_table .cmp_table').remove()
     $('#main_table .nmk').remove()
     add_cmp()
     var inputs = $('#main_table :input').not('select').not('.spdx-lite-field').not('.prefill')
     inputs.map(i => inputs[i].value = inputs[i].placeholder)
+    /* Do checksum prefil */
+    $('.ChecksumType').val("Package")
+    $('.ChecksumAlgorithm').val("SHA256")
+    $('.Checksumv').each(function() {
+	this.value = sha256(Math.random())
+    })
+    $('.PackageFileName').each(function() {
+	if($(this).attr('sample'))
+	    this.value = $(this).attr('sample')
+    })
     var sample_array=[{PackageName:"Windows Embedded Standard 7 with SP1 patches",
+		       PackageFileName: "MS-Windows-7-tr.iso", Checksumv: sha256(Math.random()),
+		       ChecksumType: "Package",ChecksumAlgorithm: "SHA256",
 		       PackageVersion:"3.0", SupplierName:"Microsoft"},
 		      {PackageName:"SQL 2005 Express", PackageVersion:"9.00.5000.00,SP4",
+		       ChecksumType: "File",ChecksumAlgorithm: "SHA256",		       
+		       FileName: "SQL-2005-Express.msi",Checksumv:sha256(Math.random()),
 		       SupplierName:"Microsoft"},
 		      {ParentComponent:"Component1",PackageName:".Net Frame Work",
+		       ChecksumType: "Package",ChecksumAlgorithm: "SHA256",		       
+		       PackageFileName: "Windows-NET-Framework.exe",Checksumv:sha256(Math.random()),
 		       PackageVersion:"V2.1.21022.8,SP2",SupplierName:"Microsoft"},
-		      {PackageName:"Java 8",PackageVersion:"v1.8",SupplierName:"Oracle"},
+		      {PackageName:"Java 8",PackageVersion:"v1.8",SupplierName:"Oracle",
+		       ChecksumType: "Package",ChecksumAlgorithm: "SHA256",		       
+		       PackageFileName: "java-8.3.1-re.exe",Checksumv:sha256(Math.random())},
 		      {ParentComponent:"Component5",PackageName:"Tomcat 9",
+		       ChecksumType: "Package",ChecksumAlgorithm: "SHA256",		       
+		       PackageFileName: "apache-tomcat-8.5.69.zip",Checksumv: sha256(Math.random()),
 		       PackageVersion:"v9.037",SupplierName:"Apache Foundation"},
 		      {ParentComponent:"Component5",PackageName:"Spring Framework",
-		       PackageVersion:"v4.7",SupplierName:"Apache Foundation"}]		      
+		       ChecksumType: "File",ChecksumAlgorithm: "SHA256",		       
+		       FileName: "spring-instrument.jar",Checksumv:sha256(Math.random()),   
+		       PackageVersion:"v4.7",SupplierName:"Apache Foundation"}]
     for(var i=0; i<sample_array.length; i++) {
 	add_cmp()
 	var q = sample_array[i]
@@ -518,26 +771,35 @@ function do_example() {
 	    $('#Component'+j+' [name="'+k+'"]').val(q[k])
 	})
     }
+    $('.ChecksumType').trigger("change")
+    $('.ChecksumAlgorithm').trigger("change")
+    $('.Checksumv').trigger("change")
+    $('.FilesAnalyzed').val('true')
     var dcmps = $('#main_table [name="PackageName"]')
     for(var i=0; i<dcmps.length; i++) {
 	update_cmp_names(dcmps[i])
     }
     /* Some unique field to update */
     $('input[type="datetime-local"]').val(new Date().toISOString().replace("Z",""))
+    $('.AddPackageComment').val(" ")
     generate_spdx()
     setTimeout(function() {
-	vul_data.push({vul_part:3,cve:'CVE-2019-2697',cvss_score:8.1})
-	add_vul()
-	load_vuls()
-	simulate_vuls()
-	add_heatmap(8.1)
-    }, 1000)
-    
+	$.getJSON("CVE-2019-2697.json")
+	    .always(function(data)
+		    {
+			cve_data.push(data)
+			vul_data.push({vul_part:3,cve:'CVE-2019-2697',cvss_score:8.1})
+			load_vuls()
+			simulate_vuls()
+			add_heatmap(8.1)
+		    })
+    }, 800)
+    $('#vuls').removeClass('d-none')
 }
 var khash = {}
 function parse_spdx(spdxin,mchild,input,fPid) {
     if(spdxin == "")
-	spdxin = $('pre#pspdx').text()
+	spdxin = $('#spdxtag').text()
     /* This is filled if there is a childbom being inserted  with class mclass*/
     var mcurrent_rowid = 0
     var mclass = ""
@@ -581,7 +843,7 @@ function parse_spdx(spdxin,mchild,input,fPid) {
     if('Creator' in khash) {
 	var allcreators = khash['Creator'].splice(1)
 	/* Mandatory but many values allowed  but not supported
-	khash['Creator'][0] = khash['Creator'][0] +"\n"+allcreators.join("\n")
+	   khash['Creator'][0] = khash['Creator'][0] +"\n"+allcreators.join("\n")
 	*/
 	/* For this demo only use simplify this ignore all others */
 	var creatordata =  khash['Creator'][0].split(":")
@@ -594,7 +856,10 @@ function parse_spdx(spdxin,mchild,input,fPid) {
     /* Check for child SBOM if not fill the top SBOM*/
     if(mcurrent_rowid == 0) {
 	/* Process the head as normal */
-	var headkeys = $('#main_table .thead :input').not("has-default")
+	var headkeys = $('#main_table .thead :input').not(".has-default").not(".not_required")
+	if($('#CreatorComment').val() == "")
+	    $('#CreatorComment').val("SwiftBOM generated at "+(new Date()).toISOString())
+
 	for(var i=0; i< headkeys.length; i++) {
 	    var field = headkeys[i]
 	    if(!(field.name in khash)) {
@@ -636,16 +901,17 @@ function parse_spdx(spdxin,mchild,input,fPid) {
     /* Default primary component index is 0, search for DESCRIBES  */
     var pIndex = 0
     /* Default components to fill starts with 0 unless a child bom is selected */
-    
-    for(var i=0; i< plen; i++) {
-	if(khash["CRelationship"][i].indexOf(khash['SPDXID']+' DESCRIBES ') > -1) {
-	    pIndex = i
-	    /* Capture parent SPDXID */
-	    //khash["PSPDXID"] = khash["CSPDXID"][i]
+    if(typeof(khash.CRelationship) != "undefined") {
+	for(var i=0; i< plen; i++) {
+	    if (khash["CRelationship"][i].indexOf(khash['SPDXID']+' DESCRIBES ') > -1) {
+		pIndex = i
+		/* Capture parent SPDXID */
+		//khash["PSPDXID"] = khash["CSPDXID"][i]
+	    }
+	    else
+		add_cmp(mclass)
 	}
-	else
-	    add_cmp(mclass)
-    }	
+    }
     /* SPDXID */
     var cmps = $('#main_table .cmp_table')
     console.log(mcurrent_rowid)
@@ -668,8 +934,8 @@ function parse_spdx(spdxin,mchild,input,fPid) {
     var jkeys = Object.keys(khash)
     for(var j=0; j< jkeys.length; j++) {
 	if(Array.isArray(khash[jkeys[j]]))
-	   if(khash[jkeys[j]].length == plen)
-	       khash[jkeys[j]].splice(pIndex,1)
+	    if(khash[jkeys[j]].length == plen)
+		khash[jkeys[j]].splice(pIndex,1)
     }
 
     //console.log(pIndex)
@@ -714,7 +980,8 @@ function parse_spdx(spdxin,mchild,input,fPid) {
     }
 }
 function update_relationships_psuedo(cmps) {
-    if(cmps.length != khash["CRelationship"].length) {
+    if((typeof(khash.CRelationship) != "undefined") &&
+       (cmps.length != khash["CRelationship"].length)) {
 	console.log("Relationship could not be updated")
 	console.log(cmps)
 	swal("Relationship mismatch","SPDX data on component relationships are not matching"+
@@ -751,12 +1018,17 @@ function fill_component(xcmps,xIndex) {
     for(var i=0; i< xcmps.length; i++) {
 	var field = xcmps[i]
 	/* PackageSupplier: $SupplierType: $SupplierName  */
-	var supplierdata =  khash['PackageSupplier'][xIndex].split(":")
-	if(supplierdata.length > 1) {
-	    khash['SupplierType'][xIndex] = supplierdata.shift()
-	    khash['SupplierName'][xIndex] = supplierdata.join(":")
-	}else
-	    khash['SupplierType'][xIndex] = "Organization"
+	if('PackageSupplier' in khash) {
+	    var supplierdata =  khash['PackageSupplier'][xIndex].split(":")
+	    if(supplierdata.length > 1) {
+		khash['SupplierType'][xIndex] = supplierdata.shift()
+		khash['SupplierName'][xIndex] = supplierdata.join(":")
+	    }else
+		khash['SupplierType'][xIndex] = "Organization"
+	} else {
+	    khash['SupplierType'][xIndex] = ""
+	    khash['SupplierName'][xIndex] = "NOASSERTION"
+	}
 	if(field.name in khash)
 	    field.value = khash[field.name][xIndex] || ""
 	else 
@@ -789,14 +1061,18 @@ function add_cmp(mclass) {
 	    clen = xId
     },0)
     if(clen < 1)
-	clen = $('.cmp_table').length
+	clen = $(".cmp_table").length
+    else
+	$(".remove-all").removeClass("d-none")
     //console.log(clen)
     var dx = $('.cmp_template').html().replace(/d_count/g,clen)
     $('#main_table .tail').before('<tr class="nmk"><td colspan="2">'+dx+'</td></tr>')
     if(mclass) {
 	$('#Component'+clen).addClass(mclass)
     }
-    $('#Component'+clen).attr('data-bomref',generate_uuid())
+    var uuid = generate_uuid()
+    $('#Component'+clen).attr('data-bomref',uuid)
+    $('#Component'+clen).find(".BomRef").val(uuid)
     var pcs = $('#main_table .ParentComponent')
     for(var i=0; i<pcs.length; i++) {
 	var id = $(pcs[i]).closest('table').attr('id')
@@ -843,7 +1119,7 @@ function verify_inputs() {
     for (var i=0; i< inputs.length; i++) {
 	if(!$(inputs[i]).val()) {
 	    if(!$(inputs[i]).hasClass("not_required")) {
-	       add_invalid_feedback(inputs[i],"")
+		add_invalid_feedback(inputs[i],"")
 		return false
 	    }
 	} else {
@@ -857,7 +1133,7 @@ function verify_inputs() {
 	    else if(!$(inputs[i])[0].checkValidity()) {
 		if($(inputs[i])[0].value.toUpperCase() in DefaultEmpty)
 		    return true
-	       add_invalid_feedback(inputs[i],"")
+		add_invalid_feedback(inputs[i],"")
 		return false
 	    }
 	}
@@ -887,10 +1163,14 @@ function validateXML(inXML) {
     }
 }
 function spdx_lite_content(el,hkey) {
+    var uniq = {}
     var spdx_lite_add = ""
     el.each(function() {
-	if(this.name in hkey)
+	/* Should have a value and should be unique to be added */
+	if((this.name in hkey) && (this.value != "") && (!(this.name in uniq))) {
 	    spdx_lite_add += this.name+": "+this.value+"\n"
+	    uniq[this.name] = 1
+	}
     })
     return spdx_lite_add
 }
@@ -941,19 +1221,25 @@ function generate_spdx() {
     var hkey = {}
     hinputs.map(i => hkey[hinputs[i].name] = safeXML(hinputs[i].value))
     try {
-	hkey['Created'] = new Date($('[name="Created"]').val())
+	hkey['Created'] = new Date($('#Created').val())
 	    .toISOString().replace(/\.\d{3}Z/,'Z')
     } catch(err) { /* Safari nonsense date parser */
-	hkey['Created'] = new Date($('[name="Created"]').val().split(",")[0])
+	hkey['Created'] = new Date($('#Created').val().split(",")[0])
 	    .toISOString().replace(/\.\d{3}Z/,'Z')
     }
     fjson.Header = hkey
     var thead = $('#spdx .head').html()
-    spdx += thead.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
+    spdx += thead.replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x])
+    var pc_uuid = generate_uuid()
+    $('.pcmp_table').find('.BomRef').val(pc_uuid)
     hinputs = $('.pcmp_table tr :input')
     var pc = {}
     hinputs.map(i => {
-	if(!hinputs[i].value) return "dummy";
+	if(!hinputs[i].value) {
+	    hkey[hinputs[i].name] = ""
+	    pc[hinputs[i].name] = ""
+	    return;
+	}
 	if(hinputs[i].type.toLowerCase() == "textarea") {
 	    hkey[hinputs[i].name] = safeTXT(hinputs[i].value)
 	    pc[hinputs[i].name] = safeTXT(hinputs[i].value);
@@ -964,31 +1250,76 @@ function generate_spdx() {
     })
     fjson.PrimaryComponent = pc
     var tpcmp = $('#spdx .pcomponent').html()
-
-    hkey['EscPackageName'] = hkey['PackageName'].replace(/[^A-Z0-9\.\-]/gi,'-')
     hkey['UrlSupplierName'] = encodeURIComponent(hkey['SupplierName'])
     hkey['UrlPackageName'] = encodeURIComponent(hkey['PackageName'])
-    /* Used in CycloneDX only */
-    hkey['BomRef'] = generate_uuid()
+    /* Used as a local unique identifier for a component - SPDX, CycloneDX */
+    if((!('BomRef' in hkey)) || (hkey['BomRef'] == "")) {
+	hkey['BomRef'] = generate_uuid()
+	$('.pcmp_table').find('.BomRef').val(hkey['BomRef'])
+    }
+    hkey['EscPackageName'] = hkey['BomRef']
     hkey['PrimaryBomRef'] = hkey['BomRef']
     $('.pcmp_table').attr('data-bomref', hkey['BomRef'])
     var PrimaryPackageName = hkey['PackageName']
-    hkey['EscPrimaryPackageName'] = hkey['EscPackageName']    
+    hkey['EscPrimaryPackageName'] = hkey['EscPackageName']
+    spdxJson = JSON.parse(JSON.stringify(spdxJson)
+			  .replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x]))
     var swidpcmp = $('#swid .pcmp').val()
-	.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
+	.replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x])
     var cyclonedxcmp = $('#cyclonedx .cyclonedxpcmp').val()
-	.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
-    cyclonedxJson['metadata'] = JSON.parse(JSON.stringify($metadata).replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")]))
+	.replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x])
+    cyclonedxJson['metadata'] = JSON.parse(JSON
+					   .stringify($metadata)
+					   .replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x]))
     alltreeData.push({props:JSON.stringify(hkey),
+		      table_id: "PrimaryComponent",
 		      name: hkey['PackageName'],
 		      parent: null,
 		      children:[]})
     swid += swidpcmp
     cyclonedx += cyclonedxcmp 
-    spdx += tpcmp.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
+    spdx += tpcmp.replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x])
     spdx += spdx_lite_content($('.pcmp_table .spdx-lite-field'),hkey)
+    var spdxpkg = JSON.parse(JSON
+			     .stringify($packages)
+			     .replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x]))
+    if(("filesAnalyzed" in spdxpkg) && (spdxpkg.filesAnalyzed == "true")) {
+	spdxpkg.filesAnalyzed = true
+	var spdxfile = JSON.parse(JSON
+				  .stringify($files)
+				  .replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x]))
+	spdxJson['files'].push(spdxfile)
+	/*  Cyclonedx hash for primary component is disabled bcos the primary component is 
+	    treated as a "device" */
+	var cyclonedxhashxml = cyclonedxhash
+	    .replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x])
+	cyclonedx = cyclonedx.replace(/<\/component>/,cyclonedxhashxml+"\n</component>\n")
+	var cyclonedxhashjson = JSON.parse(JSON
+					   .stringify(cyclonedxhashj)
+					   .replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x]))
+	cyclonedxJson["metadata"]["component"]  = Object.assign({},cyclonedxJson["metadata"]["component"],cyclonedxhashjson)
+	
+    }
+    else {
+	spdxpkg.filesAnalyzed = false
+    }
+    spdxJson['packages'].push(spdxpkg)
+    var relkey = {RelType:"DESCRIBES",
+		  RelChild:"SPDXRef-"+hkey['EscPackageName'],
+		  RelParent:hkey['SPDXID']}
+    var spdxrel = JSON.parse(JSON
+			     .stringify($relationships)
+			     .replace(/\$([A-Za-z0-9]+)/gi, (_,x) => relkey[x]))
     //console.log(spdx)
     /* Add option spdx_lite_fields */
+    spdxJson['relationships'].push(spdxrel)
+    relkey = {RelType:"CONTAINS",
+	      RelChild:"NONE",
+	      RelParent:"SPDXRef-"+hkey['EscPackageName']}
+    spdxrel = JSON.parse(JSON
+			 .stringify($relationships)
+			 .replace(/\$([A-Za-z0-9]+)/gi, (_,x) => relkey[x]))
+    spdxJson['relationships'].push(spdxrel)
     cyclonedxJson['components'] = []
     cyclonedxdeps = ''
     populate_dependencies(hkey['PrimaryBomRef'],"PrimaryComponent")
@@ -1000,9 +1331,15 @@ function generate_spdx() {
     for(var i=0; i< cmps.length; i++) {
 	hkey = {}
 	hkey['PrimaryPackageName'] = PrimaryPackageName
-	hkey['EscPrimaryPackageName'] = PrimaryPackageName.replace(/[^A-Z0-9\.\-]/gi,'-')
+	hkey['EscPrimaryPackageName'] = $('.pcmp_table').data('bomref')
 	var parent = PrimaryPackageName
-	hkey['BomRef'] = $(cmps[i]).data('bomref') || generate_uuid()
+	if($(cmps[i]).data('bomref')) { 
+	    hkey['BomRef'] = $(cmps[i]).data('bomref')
+	} else {
+	    var uuid = generate_uuid()
+	    hkey['BomRef'] = uuid
+	    $(cmps[i]).attr('data-bomref',uuid)
+	}
 	hkey['DependBomRef'] = hkey['PrimaryBomRef']
 	hkey['MyBomRef'] = hkey['BomRef']
 	hinputs = $(cmps[i]).find(':input').not('button')
@@ -1012,7 +1349,7 @@ function generate_spdx() {
 	    var parentTable = $(cmps[i]).find(".ParentComponent").val()
 	    var parentPackageName = $('#'+parentTable).find('input[name="PackageName"]').val()
 	    parent = parentPackageName
-	    hkey['EscPrimaryPackageName'] = parentPackageName.replace(/[^A-Z0-9\.\-]/gi,'-')
+	    hkey['EscPrimaryPackageName'] = $('#'+parentTable).data('bomref')
 	} else {
 	    var tid = $(cmps[i]).attr("id")
 	    populate_dependencies(hkey['MyBomRef'],tid)
@@ -1027,22 +1364,81 @@ function generate_spdx() {
 		hkey[hinputs[i].name] =  safeXML(hinputs[i].value);
 	    }
 	})
-	alltreeData.push({props: JSON.stringify(hkey),name: hkey['PackageName'],parent: parent,
+	alltreeData.push({props: JSON.stringify(hkey),
+			  table_id: $(cmps[i]).attr("id"),
+			  name: hkey['PackageName'],
+			  parent: parent,
 			  children:[]})	
 	fjson.Packages.push(hkey)
-	hkey['EscPackageName'] = hkey['PackageName'].replace(/[^A-Z0-9\.\-]/gi,'-')
+	hkey['EscPackageName'] = hkey['BomRef']
 	hkey['UrlPackageName'] = encodeURIComponent(hkey['PackageName'])
-	hkey['UrlSupplierName'] = encodeURIComponent(hkey['SupplierName'])	
+	hkey['UrlSupplierName'] = encodeURIComponent(hkey['SupplierName'])
 	tpcmp = $('#spdx .subcomponent').html()
-	tpcmps += tpcmp.replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
+	tpcmps += tpcmp.replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x])
 	tpcmps += spdx_lite_content($(cmps[i]).find('.spdx-lite-field'),hkey)
 	tpcmps += $(cmps[i]).find('.ExtReferencePayload').html()
 	swidcmps += $('#swid .cmp').val().
-	    replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])
-	var xcmpsJ = JSON.parse(JSON.stringify($component).replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")]))
-	cyclonedxJson['components'].push(xcmpsJ)
+	    replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x])
+	var xcmpsJ = JSON.parse(JSON
+				.stringify($component)
+				.replace(/\$([A-Za-z0-9]+)/gi,
+					 (_,x) => hkey[x]))
 	cyclonedxpcmps += $('#cyclonedx .cyclonedxcmp').val().
-	    replace(/\$([A-Za-z0-9]+)/gi, x => hkey[x.replace("$","")])	
+	    replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x])
+	/* custom_fields in cyclonedx from wtable table  */
+	if($(cmps[i]).data('custom_cyclonedx')) {
+	    var add_data = $(cmps[i]).data('custom_cyclonedx')
+	    xcmpsJ = Object.assign({},xcmpsJ,add_data)
+	    if('cpe' in add_data) {
+		cyclonedxpcmps = cyclonedxpcmps
+		    .replace(/<\/component>\s+$/,
+			     "<cpe>"+add_data.cpe+"</cpe>\n</component>\n")
+	    }
+	}
+	spdxpkg = JSON.parse(JSON
+			     .stringify($packages)
+			     .replace(/\$([A-Za-z0-9]+)/gi, (_,x) => hkey[x]))
+	if(("filesAnalyzed" in spdxpkg) && (spdxpkg.filesAnalyzed == "true")) {
+	    spdxpkg.filesAnalyzed = true
+	    /* In spdxJson packagefilename and filename can be the same*/
+	    if('FileName' in hkey) {
+		hkey['PackageFileName'] = hkey['FileName']
+	    }		
+	    var spdxfile = JSON.parse(JSON
+				      .stringify($files)
+				      .replace(/\$([A-Za-z0-9]+)/gi,
+					       (_,x) => hkey[x]))
+	    spdxJson['files'].push(spdxfile)
+	    var cyclonedxhashxml = cyclonedxhash.replace(/\$([A-Za-z0-9]+)/gi,
+							 (_,x) => hkey[x])
+	    cyclonedxpcmps = cyclonedxpcmps
+		.replace(/<\/component>\s+$/,
+			 cyclonedxhashxml+"\n</component>\n")
+	    var cyclonedxhashjson = JSON.parse(JSON
+					       .stringify(cyclonedxhashj)
+					       .replace(/\$([A-Za-z0-9]+)/gi,
+							(_,x) => hkey[x]))
+	    xcmpsJ = Object.assign({},xcmpsJ,cyclonedxhashjson)
+	}
+	else {
+	    spdxpkg.filesAnalyzed = false
+	}
+	spdxJson['packages'].push(spdxpkg)
+	cyclonedxJson['components'].push(xcmpsJ)	
+	relkey = {RelType:"CONTAINS",
+		  RelChild:"SPDXRef-"+hkey['EscPackageName'],
+		  RelParent:"SPDXRef-"+hkey['EscPrimaryPackageName']}
+	spdxrel = JSON.parse(JSON.stringify($relationships)
+			     .replace(/\$([A-Za-z0-9]+)/gi,
+				      (_,x) => relkey[x]))
+	spdxJson['relationships'].push(spdxrel)
+	relkey = {RelType:"CONTAINS",
+		  RelChild:"NOASSERTION",
+		  RelParent:"SPDXRef-"+hkey['EscPackageName']}
+	spdxrel = JSON.parse(JSON.stringify($relationships)
+			     .replace(/\$([A-Za-z0-9]+)/gi,
+				      (_,x) => relkey[x]))
+	spdxJson['relationships'].push(spdxrel)	
     }
     spdx += tpcmps
     swid += swidcmps+swidTail
@@ -1053,25 +1449,33 @@ function generate_spdx() {
     $('#swidtext').val(swid)
     $('#cyclonedxXML').val(cyclonedx)
     $('#cyclonedxJSON').val(JSON.stringify(cyclonedxJson,null,2))    
-    $('#spdxcontent').html('<pre id="pspdx">'+spdx+'</pre>').show()
+    //$('#spdxcontent').html('<pre id="pspdx">'+spdx+'</pre>').show()
+    $('#spdxtag').html(spdx)
+    $('#spdxjson').val(JSON.stringify(spdxJson,null,2))
+    $('.scontent').hide()
+    $('#graph').show()
     $('#scontent').show()
-    var spdxdl = $('pre#pspdx').text().replace(/\n\s+/g,'\n')
+    var spdxdl = $('#spdxtag').text().replace(/\n\s+/g,'\n')
     /* File Prefix */
-    var fPfx = $('input[name="DocumentName"]').val().replace(/[^0-9A-Z]/gi,'-')+'-'
+    var fPfx = $('input[name="DocumentName"]').val()
+	.replace(/[^0-9A-Z]/gi,'-')+'-'
     $('#dlspdx').attr('download','SPDX-'+fPfx+timefile()+'.spdx')
-    $('#dlspdx').attr('href','data:text/plain;charset=utf-8,' + encodeURIComponent(spdxdl))
+    $('#dlspdx').attr('href','data:text/plain;charset=utf-8,' +
+		      encodeURIComponent(spdxdl))
     if(typeof sha256 == "function") 
 	$('#dlspdx').data("sha256",sha256(spdxdl))
     $('#dlswid').attr('download','SWID-'+fPfx+timefile()+'.xml')
-    $('#dlswid').attr('href','data:text/plain;charset=utf-8,' + encodeURIComponent(swid))
+    $('#dlswid').attr('href','data:text/plain;charset=utf-8,' +
+		      encodeURIComponent(swid))
     $('#dlcyclonedx').attr('download','CycloneDX-'+fPfx+timefile()+'.xml')
     $('#dlcyclonedx').attr('href','data:text/plain;charset=utf-8,'
 			   + encodeURIComponent(cyclonedx))
     /* Create png but don't download */
-    treeData=grapharray(alltreeData)
+    treeData = grapharray(alltreeData)
     draw_graph()
     $('.cactive').removeClass('cactive')
-    $('#scontent a:first-of-type').addClass('cactive')
+    $('#graphshow').addClass('cactive')
+    //$('#scontent a:first-of-type').addClass('cactive')
 }
 function generate_uuid() {
     var uuid = Math.random().toString(16).substr(2,8)
@@ -1097,30 +1501,45 @@ function draw_graph() {
 	.attr("width", width + margin.right + margin.left)
 	.attr("height", height + margin.top + margin.bottom)
 	.append("g")
-	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	.attr("transform",
+	      "translate(" + margin.left + "," + margin.top + ")");
 
     var def = svg.append("defs").append("pattern")
-	.attr({ id:"hash4_4", width:"8", height:"8", patternUnits:"userSpaceOnUse", 
-		patternTransform:"rotate(90)"})
-    def.append("circle").attr({r:10,fill:"white"})
+	.attr({
+	    id:"hash4_4",
+	    width:"8",
+	    height:"8",
+	    patternUnits:"userSpaceOnUse", 
+	    patternTransform:"rotate(90)"});
+    def.append("circle").attr({r:10,fill:"white"});
     def.append("rect")
-      .attr({ width:"4", height:"8", transform:"translate(0,0)", fill:"#88AAEE" })
+	.attr({
+	    width:"4",
+	    height:"8",
+	    transform:"translate(0,0)",
+	    fill:"#88AAEE" });
 
     root = treeData[0];
     root.x0 = height / 2;
     root.y0 = 0;
-
-    update(root)
+    update(root);
 
     d3.select(self.frameElement).style("height", "500px");
     /* SVG download is unique 
-    var svgx = $('svg')[0].outerHTML
-    $('#dlsvg').attr('href','data:image/svg+xml;charset=utf-8,'+ encodeURIComponent(svgx))
-    $('#dlsvg').attr('download','SVG-'+timefile()+'.svg')
+       var svgx = $('svg')[0].outerHTML
+       $('#dlsvg').attr('href','data:image/svg+xml;charset=utf-8,'+ encodeURIComponent(svgx))
+       $('#dlsvg').attr('download','SVG-'+timefile()+'.svg')
     */
 }
+function TableGraphmapper(d) {
+    /* Make mapping both reverse and forward for table_id to 
+       graph's sid variable selector.  Dont use .data() method jquery bug */
+    $("#"+d.table_id).attr("data-graphid",d.id);
+    return d.table_id;
+    
+}
 function update(source) {
-    var i = 0
+    var i = 0;
     // Compute the new tree layout.
     var nodes = tree.nodes(root).reverse(),
 	links = tree.links(nodes);
@@ -1135,11 +1554,12 @@ function update(source) {
     // Enter any new nodes at the parent's previous position.
     var nodeEnter = node.enter().append("g")
 	.attr("class", "node")
-	.attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+	.attr("transform", function(d) {
+	    return "translate(" + source.y0 + "," + source.x0 + ")"; })
 	.on("click", doclick)
 	.on("contextmenu",dorightclick)
 	.on("mouseover",showdiv)
-	.on("mouseout",hidediv)    
+	.on("mouseout",hidediv);
 
     nodeEnter.append("circle")
 	.attr("r", 1e-6)
@@ -1148,20 +1568,24 @@ function update(source) {
 	    return d._children ? "lightsteelblue" : "#fff";
 	});
     nodeEnter.append("text")
-	.attr("x", function(d) { return d.children || d._children ? -13 : 13; })
+	.attr("x", function(d) {
+	    return d.children || d._children ? -13 : 13; })
 	.attr("dy", ".35em")
-	.attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+	.attr("text-anchor", function(d) {
+	    return d.children || d._children ? "end" : "start"; })
 	.text(function(d) { return d.name; })
 	.style("fill-opacity", 1e-6);
 
     // Transition nodes to their new position.
     var nodeUpdate = node.transition()
 	.duration(duration)
-	.attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+	.attr("transform", function(d) {
+	    return "translate(" + d.y + "," + d.x + ")"; });
 
     nodeUpdate.select("circle")
 	.attr("r", 10)
 	.attr("sid",function(d) { return d.id;})
+    	.attr("table_id",TableGraphmapper)
 	.style("fill", function(d) {
 	    try {
 		x = JSON.parse(d.props)
@@ -1180,7 +1604,8 @@ function update(source) {
     // Transition exiting nodes to the parent's new position.
     var nodeExit = node.exit().transition()
 	.duration(duration)
-	.attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+	.attr("transform", function(d) {
+	    return "translate(" + source.y + "," + source.x + ")"; })
 	.remove();
 
     nodeExit.select("circle")
@@ -1228,8 +1653,10 @@ function update(source) {
 }
 
 function clear_vuls() {
-    vul_data = []
-    $('#heatmap').remove()
+    vul_data = [];
+    if(!$('.csaftab').hasClass('d-none'))
+	$('.csaftab').addClass('d-none');
+    $('#heatmap').remove();
 }
 
 function showdiv(d) {
@@ -1238,7 +1665,7 @@ function showdiv(d) {
     var props = JSON.parse(d.props)
     //console.log(d)
     //console.log(this)
-    var bgcolor = 'rgba(70, 130, 180, 0.4)'
+    var bgcolor = 'rgba(70, 130, 180, 0.9)'
     var vul_data = $(this).data()
     if($(this).is('g'))
 	vul_data = $(this).find('circle').data()
@@ -1259,7 +1686,7 @@ function showdiv(d) {
 	if(d.id != vid) {
 	    var findex = alltreeData.findIndex(x => x.id == vid)
 	    if(findex > -1)
-	    addons += '<br>Vul: <b><i>Inherited from '+alltreeData[findex]['name']+'</i></b>'
+		addons += '<br>Vul: <b><i>Inherited from '+alltreeData[findex]['name']+'</i></b>'
 	} else {
 	    addons += '<br> Vul: <b>'+vul_data.cve+' with CVSS score of '+
 		vul_data.cvss_score+'</b>'
@@ -1289,20 +1716,20 @@ function hidediv(d) {
 function dorightclick(d) {
     return
     /*
-    console.log(d)
-    console.log($(d))
-    console.log($(d).attr('parent'))    
-    $(d).css({fill:'red'})
+      console.log(d)
+      console.log($(d))
+      console.log($(d).attr('parent'))    
+      $(d).css({fill:'red'})
     */
 }
 
 function doclick(d) {
     /*
-    if(($(this).is('g') && $(this).find('circle').hasClass('has_vul')) ||
-       ($(this).hasClass('has_vul'))) {
-	showdiv(d)
-	return
-    }
+      if(($(this).is('g') && $(this).find('circle').hasClass('has_vul')) ||
+      ($(this).hasClass('has_vul'))) {
+      showdiv(d)
+      return
+      }
     */
     //console.log(d)
     try {
@@ -1369,13 +1796,21 @@ function showme(showdiv,vul_flag,hidediv,el) {
 	    fname = fname.replace(/\.[^\.]+$/,'.'+parentext)
 	    $('#'+parenthref).attr('download',fname)
 	    var ndata = $(showdiv).val()
+	    if(ndata == "")
+		ndata = $(showdiv).text().replace(/\n\s+/g,'\n')
 	    $('#'+parenthref).attr('href','data:text/plain;charset=utf-8,'
 				   + encodeURIComponent(ndata))
 	}
+	var showpan = $(showdiv)[0]
+	$(showpan).height(String(showpan.scrollHeight)+"px")	
     } else {	
-	$(showdiv).find('textarea').hide()
-	$(showdiv).find('textarea:first-of-type').show()
-	$(showdiv).find('.childtab:first-of-type').addClass('cactive')
+	$(showdiv).find('.dlContent').hide()
+	var showpan = $(showdiv).find('.dlContent')[0]
+	if(showpan) {
+	    $(showpan).show()
+	    $(showpan).height(String(showpan.scrollHeight)+"px")
+	    $(showdiv).find('.childtab:first-of-type').addClass('cactive')
+	}
     }
     $(el).addClass('cactive')
     if(vul_flag)
@@ -1410,55 +1845,157 @@ function add_heatmap(cvss_score) {
     }
 }
 function simulate_vuls() {
-    $('.invalid-feedback').remove()
-    var pratio = parseFloat($('#pratio').val())
-    var vul_rows = $('#vul_table .vul_template').not('.d-none')
+    $('.invalid-feedback').remove();
+    var pratio = parseFloat($('#pratio').val());
+    var vul_rows = $('#vul_table .vul_template').not('.d-none');
     if(!vul_rows.length) {
+	if(!$('.csaftab').hasClass('d-none'))
+	    $('.csaftab').addClass('d-none');
 	if(vul_data.length > 0) {
 	    if(confirm("Clear all current simulated vulnerabilities?")) {
-		vul_data=[]
-		$('circle').removeData().css({fill: 'rgb(255,255,255)'}).removeClass('has_vul')
-		$('#vul_table').modal('hide')
-		$('#heatmap').remove()
-		return
+		vul_data=[];
+		$('circle').removeData()
+		    .css({fill: 'rgb(255,255,255)'}).removeClass('has_vul');
+		$('#vul_table').modal('hide');
+		$('#heatmap').remove();
+		return;
 	    }
 	}
-	alert("Nothing to add")
-	return
+	swal("Warning","No vulnerabilities in this set","warning");
+	return;
     }
-    vul_data = []
+    vul_data = [];
+    var cdxvuls = "\n<v:vulnerabilities>\n";
+    
+    var csaf = {"document":
+		JSON.parse(JSON.stringify(csaf_doc)
+			   .replace(/\$([A-Za-z0-9]+)/gi,function(_,x) {
+			       return $("#"+x).val()
+			   }))};
+    csaf["vulnerabilities"] = [];
+    csaf["product_tree"] = { "branches": [] };
     for(var j=0; j<vul_rows.length; j++) {
-	var inputs = $(vul_rows[j]).find(":input").not("button")
+	var inputs = $(vul_rows[j]).find(":input").not("button");
 	for (var i=0; i< inputs.length; i++) {
 	    if(!$(inputs[i]).val()) {
-		add_invalid_feedback(inputs[i],"")
-		return false
+		add_invalid_feedback(inputs[i],"");
+		return false;
 	    }
 	}
-	var vid = parseInt($(vul_rows[j]).find(".vul_part").val())
-	var cve = $(vul_rows[j]).find(".cve").val()
-	var cvss_score = parseFloat($(vul_rows[j]).find(".cvss_score").val())
+	var vid = parseInt($(vul_rows[j]).find(".vul_part").val());
+	var cve = $(vul_rows[j]).find(".cve").val();
+	var cvss_score = parseFloat($(vul_rows[j]).find(".cvss_score").val());
 	if(isNaN(cvss_score) || (cvss_score <= 0) || (cvss_score > 10)) {
-	    add_invalid_feedback($(vul_rows[j]).find(".cvss_score"),"CVSS Score should be between 0.1 and 10.0")
-	    return false
+	    add_invalid_feedback($(vul_rows[j])
+				 .find(".cvss_score"),
+				 "CVSS Score should be between 0.1 and 10.0");
+	    return false;
 	}
-	$('#vul_table').modal('hide')
-	var vul_d = {vul_part:vid,cvss_score:cvss_score,cve:cve} 
-	vul_data.push(vul_d)
+	$('#vul_table').modal('hide');
+	var vul_d = {vul_part:vid,cvss_score:cvss_score,cve:cve };
+	vul_data.push(vul_d);
 	/* find children relationships using ID property */
 	//var vcid = vid
 	//console.log(vid)
 	//console.log(vcid)
 	//populate_vuls(vul_d)
-	$('circle[sid="'+vid+'"]').css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
-	    .data(vul_d).addClass('has_vul')
+	var cdxvul = $('.cyclonedxvuls').val();
+	var vkey = {};
+	vkey['CVE'] = cve;
+	var graphid = vid;
+	var wtable = $('[data-graphid="'+graphid+'"]');
+	vkey['BomRef'] = wtable.data('bomref');
+	cdxvuls += cdxvul.replace(/\$([A-Za-z0-9]+)/gi,
+				  (_,x) => safeXML(vkey[x]));
+	var csaf_cve = {
+	    description: cve,
+	    cve:cve,
+	    BomRef: wtable.data("bomref") };
+	var cve_index = cve_data.findIndex(x => x.cve.CVE_data_meta.ID == cve);
+	if(cve_index > -1) {
+	    var cve_df = cve_data[cve_index]
+	    if(('cve' in cve_df) && ('description' in cve_df.cve) &&
+	       ('description_data' in cve_df.cve.description) &&
+	       (cve_df.cve.description.description_data.length > 0) &&
+	       ('value' in cve_df.cve.description.description_data[0]))
+		csaf_cve.description = cve_df.cve.description
+		.description_data[0].value;
+	    if('scores' in csaf_vuls)
+		delete csaf_vuls['scores']
+	    if('impact' in cve_df) {
+		if (('baseMetricV3' in cve_df.impact) && 
+		    ('cvssV3' in cve_df.impact.baseMetricV3)) {
+		    /* copy object to CSAF CVSSv3*/
+		    csaf_vuls['scores'] = [{
+			"products":["CSAFPID-"+wtable.data('bomref')] }];
+		    csaf_vuls.scores[0]['cvss_v3'] = Object.assign(cve_df
+							       .impact
+							       .baseMetricV3
+							       .cvssV3,{});
+		    }
+		else if (('baseMetricV2' in cve_df.impact) && 
+			 ('cvssV2' in cve_df.impact.baseMetricV2)) {
+		    /* copy object to CSAF CVSSv3*/
+		    csaf_vuls['scores'] = [{
+			"products":["CSAFPID-"+wtable.data('bomref')] }];
+		    csaf_vuls.scores[0]['cvss_v2'] = Object.assign(cve_df
+								.impact
+								.baseMetricV2
+								.cvssV2,{});
+		}		    
+	    }
+	}
+	csaf.vulnerabilities.push(JSON.parse(JSON
+					     .stringify(csaf_vuls)
+					     .replace(/\$([A-Za-z0-9]+)/gi,
+						      (_,x) => csaf_cve[x])));
+	csaf.product_tree
+	    .branches
+	    .push(JSON.parse(JSON
+			     .stringify(csaf_products)
+			     .replace(/\$([A-Za-z0-9]+)/gi,
+				      (_,x) => wtable.find("."+x).val())));
+	$('circle[sid="'+vid+'"]')
+	    .css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
+	    .data(vul_d).addClass('has_vul');
 	setTimeout(function() {
-	    add_color_child(vid,cvss_score*pratio,vul_d)}, 400)
+	    add_color_child(vid,cvss_score*pratio,vul_d)}, 400);
 	setTimeout( function () {
-	    add_color_parent(vid,cvss_score*pratio,vul_d)}, 500)	
+	    add_color_parent(vid,cvss_score*pratio,vul_d)}, 500);
+	if($('.'+cve).length < 1) {
+	    /* Add CVE information to the table 
+	       cve_id, cvss_score, vul_part
+	    */
+	    var pkgName = wtable.find(".PackageName").val();
+	    var frow = '<tr class="CVEVuls text-warning '+cve+'"><td colspan="2"><div><input type="checkbox" checked alt="Include" onclick="add_cve(this)" title="Include" class="not_required"> <a class="btn btn-outline-danger" onclick="view_cve(this)">'+cve+'</a> was added for <b>'+pkgName+'</b> with CVSS(v3) score: <b>'+cvss_score+'</b></div></td></tr>';
+	    wtable.append(frow);
+	    $('.'+cve).data("cve",{cve_id: cve, cvss_v3_score: cvss_score,vul_part:graphid});
+	}
     }
-    add_heatmap(cvss_score)
+    $('#csafJSON').val(JSON.stringify(csaf,null,2));
+    var dfname = $('#DocumentName').val().replace(/[^A-Z0-9\-]/gi,'_')    
+    $('#dlcsaf').attr('download','CSAF-'+dfname+'.json')
+    $('#dlcsaf').attr('href','data:text/plain;charset=utf-8,' +
+		      encodeURIComponent(JSON.stringify(csaf,null,2)));
+    add_heatmap(cvss_score);
+    /* Add cyclonedx <v:vulnerabilities> elements and relevant namespace*/
+    var cyclonedxXML = $('#cyclonedxXML').val();
+    var Vxml = 'xmlns:v="http://cyclonedx.org/schema/ext/vulnerability/1.0"'
+    if(cyclonedxXML.indexOf(Vxml) < 0) {
+	cyclonedxXML = cyclonedxXML
+	    .replace('"http://cyclonedx.org/schema/bom/1.2"',
+		     '"http://cyclonedx.org/schema/bom/1.2"\n '+ Vxml);
+    }
+    if(cyclonedxXML.indexOf("<v:vulnerabilities>") > -1) {
+	cyclonedxXML = cyclonedxXML.replace(/<v:vulnerabilities>.*$/,'');
+    } else {
+	cyclonedxXML = cyclonedxXML.replace(/\s+<\/bom>\s+$/,'');
+    }
+    cyclonedxXML = cyclonedxXML + cdxvuls + "</v:vulnerabilities>\n</bom>\n";
+    $('#cyclonedxXML').val(cyclonedxXML);
+    $('.csaftab').removeClass('d-none');
 }
+
 function add_color_child(vid,cvss_score,vul_d) {
     var vcid = alltreeData.findIndex(x => x.id == vid)
     if(vcid < 0) {
@@ -1500,7 +2037,7 @@ function add_color_parent(vid,cvss_score,vul_d) {
     var tvcid = tnode['parent']['id']
     var pel = $('circle[sid='+tvcid+']')
     if((pel.data('cvss_score')) &&
-	   (pel.data('cvss_score') > cvss_score)) {
+       (pel.data('cvss_score') > cvss_score)) {
 	console.log("Parent already has higher score in cvss Ignoring "+cvss_score);
 	return
     }    
@@ -1548,12 +2085,12 @@ function cvss_tocolor(cvss) {
     return [255,200-(ncvs*20),0].join(",")
 }
 function cve_check(w) {
-/* 
-Provide CVE browsing capability.
-https://cve.circl.lu/api/cve/CVE-2010-3333 
-https://olbat.github.io/nvdcve/CVE-2017-1000369.json
+    /* 
+       Provide CVE browsing capability.
+       https://cve.circl.lu/api/cve/CVE-2010-3333 
+       https://olbat.github.io/nvdcve/CVE-2017-1000369.json
 
-*/
+    */
     var cve = w.value.toUpperCase()
     if(!cve.match(/^CVE\-\d{4}\-\d{4,}$/)) {
 	add_invalid_feedback(w,"CVE score should be properly formatted")
@@ -1643,7 +2180,7 @@ function FillFromExcel(dexcel) {
 	} else {
 	    d = new Date(Date.parse(khash.Created))
 	}
-	$('[name="Created"]').val(d.toISOString().replace("Z",""))
+	$('#Created').val(d.toISOString().replace("Z",""))
     }
     var headkeys = $('#main_table .thead :input').not(".has-default")
     for(var i=0; i< headkeys.length; i++) {
@@ -1670,8 +2207,12 @@ function FillFromExcel(dexcel) {
     khash['Relationship'] = Array(plen).fill("Included")
     khash['ParentComponent'] = Array(plen).fill("PrimaryComponent")
     khash['Relationship'][0] = 'Primary'
-    khash['PackageSupplier'] = khash['SupplierType'].map((x,i) => x+':'+
-					       khash['SupplierName'][i])
+    khash['PackageSupplier'] = khash['SupplierType'].map(function(x,i) {
+	if(x)
+	    return x+':'+ khash['SupplierName'][i]
+	else
+	    return "NOASSERTION"
+    })
 
     /* Default primary component index is 0, search for DESCRIBES  */
     var pIndex = 0
@@ -1692,8 +2233,8 @@ function FillFromExcel(dexcel) {
     var jkeys = Object.keys(khash)
     for(var j=0; j< jkeys.length; j++) {
 	if(Array.isArray(khash[jkeys[j]]))
-	   if(khash[jkeys[j]].length == plen)
-	       khash[jkeys[j]].splice(pIndex,1)
+	    if(khash[jkeys[j]].length == plen)
+		khash[jkeys[j]].splice(pIndex,1)
     }
     var cmps = $('#main_table .cmp_table')    
     //console.log(pIndex)
@@ -1763,7 +2304,7 @@ function make_png(nodownload,nextfun) {
 	if(typeof(nextfun) == "function")
 	    nextfun()
     }
-  img.src = url
+    img.src = url
 }
 function download_zip() {
     /* Create PNG file but do not download */
@@ -1781,7 +2322,7 @@ function do_download_zip() {
 	ws = ws.concat(cws[i].contentWindow)
 	cws[i].contentWindow.make_png(true)
     }
-    dfolder.file(zname+".spdx", $('pre#pspdx').text().replace(/\n\s+/g,'\n'))
+    dfolder.file(zname+".spdx", $('#spdxtag').text().replace(/\n\s+/g,'\n'))
     dfolder.file(zname+"-swid.xml", $('#swidtext').val())
     dfolder.file(zname+"-cyclonedx.xml", $('#cyclonedxXML').val())
     dfolder.file(zname+".png",$('#pngblob').val(), {base64: true})
@@ -1790,7 +2331,7 @@ function do_download_zip() {
 	for (var i =0; i< ws.length; i++) {
 	    var vw = ws[i]
 	    var vzname = vw.$('#DocumentName').val().replace(/[^A-Z0-9\-]/gi,'_')
-	    dfolder.file(vzname+".spdx", vw.$('pre#pspdx').text().replace(/\n\s+/g,'\n'))
+	    dfolder.file(vzname+".spdx", vw.$('#spdxtag').text().replace(/\n\s+/g,'\n'))
 	    dfolder.file(vzname+"-swid.xml", vw.$('#swidtext').val())
 	    dfolder.file(vzname+"-cyclonedx.xml", vw.$('#cyclonedxXML').val())
 	    dfolder.file(vzname+".png",vw.$('#pngblob').val(), {base64: true})
@@ -1856,4 +2397,433 @@ function semverCompare(v1, v2, options) {
     }
 
     return 0;
+}
+/* NPM Package and PIP Package related code */
+var npmchildren = []
+var Remaining = 0
+var Depth = 0 
+var npms = {}
+var pips = {}
+var pipchildren = []
+
+function pkg_ask(pgtype) {
+    var sample = "readme-renderer"
+    var textf = 'Provide a PyPi/PIP Package Name PIP e.g. "'+sample+'".'
+    var acontent = "Upload requirements.txt"
+    if(pgtype == 'npm') {
+	sample = "jasmine"
+	textf = 'Provide a Node Package Name NPM e.g. "jasmine".'
+	acontent = "Upload packges.json"
+    }
+    var content = document.createElement('div')
+    var pname = document.createElement('input')
+    pname.className = "form-control swal-cinput"
+    pname.placeholder = sample
+    var pcrawl = document.createElement('input')
+    pcrawl.type = 'checkbox'
+    pcrawl.className = 'swal-cbox'
+    pcrawl.checked = true
+    pname.onchange = function() {
+	swal.setActionValue({confirm: [this.value,$('.swal-cbox')[0].checked]})
+    }
+    pname.onkeyup = function(e) {
+	if (e.key === 'Enter' || e.keyCode === 13)
+	    $('.swal-button--confirm').click()
+    }
+    pcrawl.onchange = function() {
+	if(this.checked) 
+	    swal.setActionValue({confirm: [$('.swal-cinput').val(),true]})
+	else
+	    swal.setActionValue({confirm: [$('.swal-cinput').val(),false]})
+    }
+    var ptext = document.createElement("span")
+    ptext.innerHTML = " Recurse dependencies"
+    ptext.style.color = "black"
+    var atext = document.createElement("a")
+    atext.innerHTML = acontent
+    atext.style.display = "block"
+    atext.href = "javascript:javascript:void(0)"
+    atext.onclick = function() { $('#spdxload').click()} 
+    content.appendChild(pname)
+    content.appendChild(pcrawl)
+    content.appendChild(ptext)
+    content.appendChild(atext)    
+    swal({
+	text: textf,
+	button: {
+	    text: "Fetch!",
+	    closeModal: false,
+	},
+	content
+    }).then(function(f) {
+	if(!f) {
+	    swal.close()
+	    return
+	}
+	var name = f[0]
+	var crawl = f[1]
+	if (!name) {
+	    swal("Error!","Sorry Package name is required!","error",{timer: 1800})
+	} else {
+	    if (pgtype == 'npm') {
+		start_npm(name.toLowerCase(),crawl)
+	    } else {
+		start_pip(name,crawl)
+	    }
+	}
+    })
+    setTimeout(function() {
+	$('.swal-cinput').focus()
+    }, 600)
+
+}
+function start_npm(k,crawl) {
+    Remaining = 0
+    Depth = 0 
+    $.getJSON("https://api.npms.io/v2/package/"+k,
+	      function(d) {
+		  //console.log(d)
+		  if(("collected" in d) && ("metadata" in d.collected))
+		      npmcomponent(d.collected.metadata,crawl)
+	      }).fail(function(jqXHR, textStatus, errorThrown) {
+		  console.log('getJSON request failed! ' + textStatus);
+		  swal("Error!","Sorry NPM package search for: "+k+" package, failed with error: "+String(errorThrown)+"","error")
+	      })
+}
+function npmcomponent(pjson,crawl) {
+    /* SPDX header and SPDX primary component for an NPM*/
+    $('#Created').val((new Date()).toISOString().replace("Z",""))
+    if(("name" in pjson) && ("version" in pjson)) {
+	$('#DocumentName').val("NPM-"+pjson.name.toUpperCase()+"-"+pjson.name+"-SBOM")
+	if("author" in pjson) {
+	    if("url" in pjson.author) {
+		$('#DocumentNamespace').val(pjson.author.url)
+		$('[name="Creator"]').val(pjson.author.url)
+		$('#PrimaryComponent').find('.SupplierName').val(pjson.author.url)
+	    }
+	    if("name" in pjson.author) {
+		$('[name="Creator"]').val(pjson.author.name)
+		$('[name="CreatorType"]').val("Person")
+		$('#PrimaryComponent').find('.SupplierName').val(pjson.author.name)		
+	    }
+	} else if (("links" in pjson) && ("homepage" in pjson.links)) {
+	    $('#DocumentNamespace').val(pjson.links.homepage)
+	    $('[name="Creator"]').val(pjson.links.homepage)
+	    $('#PrimaryComponent').find('.SupplierName').val(pjson.links.homepage)	
+	} else if (("publisher" in pjson) && ("email" in pjson.publisher)) {
+	    if(("links" in pjson) && ("npm" in pjson.links))
+		$('#DocumentNamespace').val(pjson.links.npm)
+	    $('[name="Creator"]').val(pjson.publisher.email)
+	    $('[name="CreatorType"]').val("Person")
+	    $('#PrimaryComponent').find('.SupplierName').val(pjson.publisher.email)
+	} else if (("maintainers" in pjson) && (pjson.maintainers.length > 0)
+		   && ("email" in pjson.maintainers[0])) {
+	    $('[name="Creator"]').val(pjson.maintainers[0].email)
+	    $('[name="CreatorType"]').val("Person")
+	    $('#PrimaryComponent').find('.SupplierName').val(pjson.maintainers[0].email)
+	}	
+
+	
+	$('#CreatorComment').val("Created using SwiftBOM https://github.com/CERTCC/SBOM/")
+	$('#PrimaryComponent').find('.PackageName').val(pjson.name)
+	$('#PrimaryComponent').find('.PackageVersion').val(pjson.version)	
+    } else {
+	console.log("Error required elements version and name are NOT present")
+	swal("Error!","Required elements were not present to create SPDX BOM","error")
+	return
+    }
+    if("dependencies" in pjson)
+	dep_tree(pjson,0,crawl)
+    else
+	swal({
+	    title: "Finished analyzing NPM Package "+pjson.name,
+	    text: "Your package has no dependencies!",
+	    icon: "success"
+	});    
+}
+function dep_tree(pjson,mparent,crawl) {
+    var is = $('tr.nmk').length
+    if(is > 254) {
+	fail_abort(is,npms)
+    }
+    var last = Object.keys(pjson.dependencies).length
+    Remaining += last
+    var current = 0
+    for (k in pjson.dependencies) {
+	if(k in npms) {
+	    Remaining--
+	    console.log("Already have this one "+k)
+	    continue
+	}
+	is = is + 1
+	current = current + 1
+	add_cmp()
+	$('#Component'+String(is)).find(".PackageName").val(k)
+	$('#Component'+String(is)).find(".PackageVersion").val(pjson.dependencies[k])
+	npms[k] = $.ajax({url:"https://api.npms.io/v2/package/"+k,
+			  isid: is,
+			  iparent: mparent,
+			  type: "get"
+			 }).done( function(d) {
+			     var cid = '#Component'+String(this.isid)
+			     var dpkg
+			     if("collected" in d)
+				 dpkg = d.collected
+			     else
+				 return
+			     if(!("metadata" in dpkg)) {
+				 console.log("Error could not find the package in npms.io "+k)
+				 return
+			     }
+			     if(! dpkg.metadata.name == k) {
+				 console.log("Error could not find the package in npms.io mismatch "+k)
+				 return
+			     } else {
+				 var tpkg = dpkg.metadata
+				 //console.log(tpkg)
+				 if("author" in tpkg) {
+				     //console.log(tpkg.author)
+				     if("url" in tpkg.author) {
+					 $(cid).find('.SupplierName').val(tpkg.author.url)
+				     }
+				     else if("name" in tpkg.author) {
+					 $(cid).find('.SupplierName').val(tpkg.author.name)
+				     }
+				 } else if (("links" in tpkg) && ("homepage" in tpkg.links)) {
+				     $(cid).find('.SupplierName').val(tpkg.links.homepage)
+				 } else if (("publisher" in tpkg) && ("email" in tpkg.publisher)) {
+				     $(cid).find('.SupplierName').val(tpkg.publisher.email)
+				     $(cid).find('.SupplierType').val("Person")
+				     
+				 } else if (("maintainers" in tpkg) &&
+					    (tpkg.maintainers.length > 0)
+					    && ("email" in tpkg.maintainers[0])) {
+				     $(cid).find('.SupplierName').val(tpkg.maintainers[0].email)
+				     $(cid).find('.SupplierType').val("Person")
+				 }
+				 if("version" in tpkg)
+				     $(cid).find(".PackageVersion").val(tpkg.version)
+				 if(("links" in tpkg) && ("repository" in tpkg.links)) {
+				     var repository = tpkg.links.repository
+				     //console.log("Found "+tpkg.links.repository)
+				 }
+				 if(this.iparent > 0) {
+				     console.log("Connecting to "+this.iparent)
+				     $(cid).find(".ParentComponent").val("Component"+String(this.iparent))
+				 }
+				 if("dependencies" in tpkg)
+				     npmchildren.push({d:tpkg,level:this.isid})
+			     }
+			 }).always(function() {
+			     Remaining--
+			     if(Remaining == 0) {
+				 Depth++ 
+				 console.log("Layer finished "+String(Depth))
+				 $('.swal-footer').append("<p>Processed dependencies with depth : "+String(Depth)+"</p>")
+				 var more = false
+				 if(crawl) {
+				     for(var i=0; i < npmchildren.length; i++) {
+					 var c = npmchildren[i]
+					 for(var f in c.d.dependencies) {
+					     if(!(f in npms))
+						 more = true
+					 }
+					 if(more) /* Even if one package is missing get it*/
+					     dep_tree(c.d,c.level,crawl)
+				     }
+				 }
+				 if(!more) {
+				     var tmk = String($('tr.nmk').length)
+				     swal({
+					 title: "Finished finding "+ tmk +" dependencies for NPM package ",
+					 text: "Note: duplicate packages found were ignored!",
+					 icon: "success"
+				     });
+				 }
+			     }
+			 }) 
+    }
+}
+function fail_abort(is,rqs) {
+    $('.swal-footer').append("<p style='color:red'>Aborting: Too many dependencies!</p>");
+    var aborted = 0
+    for(var k in rqs) {
+	var rq = rqs[k]
+	if(('readyState' in rq) && (rq.readyState != 4)) {
+	    aborted++
+	    console.log(rq)
+	    rq.abort()
+	}
+    }
+    swal("Error!", "Too many dependencies for this Package, > 255, Pending "+String(aborted)+" requests were aborted!", "error");
+    return 1
+}
+
+
+function start_pip(pkg,crawl) {
+    Remaining = 0
+    Depth = 0
+    //https://pypi.org/pypi/roundup/json
+    $.getJSON({url: "https://pypi.org/pypi/"+pkg+"/json"}).done(function(pjson) {
+	console.log(pjson)
+	pipcomponent(pjson,crawl)
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+	console.log('getJSON request failed! ' + textStatus);
+	swal("Error!","Sorry PIP package search for: "+pkg+" package, failed with error: "+String(errorThrown),"error")
+    })
+}
+function pipcomponent(pjson,crawl) {
+    $('#Created').val((new Date()).toISOString().replace("Z",""))    
+    if("info" in pjson) {
+	var ijson = pjson.info
+    } else {
+	swal("Error!","PIP package: "+k+", does not have enough information to build SPDX doc!","error")
+	return
+    }
+    if(("summary" in ijson) && ("version" in ijson)) {
+	$('#DocumentName').val("PIP-"+ijson.name.toUpperCase()+"-"+ijson.name+"-SBOM")
+	if(("author" in ijson) && (ijson.author)) {
+	    $('[name="Creator"]').val(ijson.author)
+	    //$('[name="CreatorType"]').val("Person")
+	    $('#PrimaryComponent').find('.SupplierName').val(ijson.author)
+	} else if (("home_page" in ijson) && (ijson.home_page)) {
+	    $('[name="Creator"]').val(ijson.home_page)
+	    $('#PrimaryComponent').find('.SupplierName').val(ijson.home_page)
+	} else if(("maintainer" in ijson) && (ijon.maintainer)) {
+	    $('[name="Creator"]').val(ijson.maintainer)	    
+	    $('#PrimaryComponent').find('.SupplierName').val(ijson.maintainer)
+	    $('#PrimaryComponent').find('.SupplierType').val("Person")
+	}
+	if ("home_page" in ijson)
+	    $('#DocumentNamespace').val(ijson.home_page)
+	$('#CreatorComment').val(ijson.summary+" ingredients assembled using SwiftBOM https://github.com/CERTCC/SBOM/")
+	$('#PrimaryComponent').find('.PackageName').val(ijson.name)
+	$('#PrimaryComponent').find('.PackageVersion').val(ijson.version)
+	
+    } else {
+	console.log("Error required elements version and name are NOT present")
+	swal("Error!","Required elements were not present to create SPDX BOM","error")
+	return
+    }
+    if(("requires_dist" in ijson) && (ijson.requires_dist))
+	pip_tree(ijson,0,crawl)
+    else
+	swal({
+	    title: "Finished analyzing PIP Package "+ijson.name,
+	    text: "Your package has no dependencies!",
+	    icon: "success"
+	});
+}
+function pip_require(jdata) {
+    var lls = jdata.split(/\r?\n/)
+    /* Remove last empty element */
+    lls.pop()
+    var ijson = {requires_dist: lls}
+    pip_tree(ijson,0,false)
+}
+function pip_tree(pjson,mparent,crawl) {
+    var is = $('tr.nmk').length
+    if(is > 254) {
+	return fail_abort(is,pips)
+    }
+    if(!("requires_dist" in pjson)) {
+	console.log("This package has no dependencies ");
+	console.log(pjson)
+	return
+    }
+    if(!(pjson.requires_dist)) {
+	console.log("This package has no dependencies ");
+	console.log(pjson)
+	return
+    }
+    var last = pjson.requires_dist.length
+    Remaining += last
+    var current = 0
+    for (kinfo of pjson.requires_dist) {
+	var k = kinfo.split(/[ \;\,\[\=]+/)[0]
+	var kversion
+	if(kinfo.match(/[A-Za-z0-9\-\. ]+==/)) {
+	    console.log("Pinned version true for this "+kinfo)
+	    kversion = kinfo.split(/[^A-Za-z0-9\-\. ]+/)[1]
+	}
+	if(k in pips) {
+	    Remaining--
+	    console.log("Already have this one "+k)
+	    continue
+	}
+	is = is + 1
+	current = current + 1
+	add_cmp()
+	$('#Component'+String(is)).find(".PackageName").val(k)
+	if(kversion) {
+	    $('#Component'+String(is)).find(".PackageVersion").val(kversion)
+	}
+	pips[k] = $.ajax({url:"https://pypi.org/pypi/"+k+"/json",
+			  isid: is,
+			  iparent: mparent,
+			  type: "get"
+			 }).done( function(q) {
+			     var d = q.info
+			     if(("summary" in d) && ("version" in d)) {
+				 var cid = '#Component'+String(this.isid)
+				 if(("author" in d) && (d.author)) {
+				     $(cid).find('.SupplierName').val(d.author)
+				 } else if (("home_page" in d) && (d.home_page)) {
+				     $(cid).find('.SupplierName').val(d.home_page)
+				 } else if(("maintainer" in d) && (d.maintainer)) {
+				     $(cid).find('.SupplierName').val(d.maintainer)
+				     $(cid).find('.SupplierType').val("Person")
+				 }
+				 $(cid).find('.PackageName').val(d.name)
+				 var kvs = $(cid).find('.PackageVersion').val()
+				 if((kvs != "") && (kvs != d.version)) {
+				     console.log("Override version "+d.version+" with "+kversion)
+				     var warn_msg = "Warning: Package version was pinned to "+kvs+", latest is "+d.version
+				     $(cid).find('.PackageVersion').after("<span class='text text-warning'>"+warn_msg+"</span>")
+				     $(cid).find('.AddPackageComment').val(warn_msg)
+				 } else 
+				     $(cid).find('.PackageVersion').val(d.version)
+				 if(this.iparent > 0) {
+				     console.log("Connecting to "+this.iparent)
+				     $(cid).find(".ParentComponent").val("Component"+String(this.iparent))
+				 }
+				 if("requires_dist" in d)
+				     pipchildren.push({d:d,level:this.isid})
+			     } else {
+				 console.log(d)
+				 console.log("Invalid data in dependent software")
+				 return
+			     }
+			 }).always(function() {
+			     Remaining--
+			     if(Remaining == 0) {
+				 Depth++ 
+				 console.log("Layer finished "+String(Depth))
+				 $('.swal-footer').append("<p>Processed dependencies with depth : "+String(Depth)+"</p>")		       
+				 var more = false
+				 if(crawl) { 
+				     for(var i=0; i < pipchildren.length; i++) {
+					 var c = pipchildren[i]
+					 if(c.d.requires_dist) { 
+					     for(var finfo of c.d.requires_dist) {
+						 var f = finfo.split(/[ \;\,\[]+/)[0]
+						 if(!(f in pips))
+						     more = true
+					     }
+					     if(more)
+						 pip_tree(c.d,c.level,crawl)
+					 }
+				     }
+				 }
+				 if(!more) {
+				     var tmk = String($('tr.nmk').length)
+				     swal({
+					 title: "Finished finding "+ tmk +" dependencies for PIP package ",
+					 text: "Note: duplicate packages found were ignored and latest package versions are assumed!",
+					 icon: "success"
+				     });
+				 }
+			     }
+			 }) 
+    }
 }

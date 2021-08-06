@@ -4,7 +4,7 @@
     <title>SwiftBOM- SBOM generator for demo and PoCs</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="referrer" content="no-referrer" />
-    <meta name="version" content="1.8.1" />
+    <meta name="version" content="1.8.4" />
     <meta name="generator" content="SBOM-Demo 1.8 - SEI" />
     <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
     <link rel="stylesheet"
@@ -28,7 +28,7 @@
     <script src="sha256.js" async defer></script>
     <link href="magicsuggest-min.css" rel="stylesheet">
     <script src="magicsuggest-min.js" async defer></script>
-    <link rel="stylesheet" href="css.css?v=1623706983">
+    <link rel="stylesheet" href="css.css?v=1627592542">
   </head>
   <body class="blackbody">
     <div class="coverpage childbomframe cframeTemplate">
@@ -54,35 +54,55 @@
 	<a id="dlspdx" class="dldr" title="Download SPDX">
 	  &darr;
 	</a>
-	| 
 	<a href="javascript:void(0)" onclick="showme('#swidcontent',0,'.scontent',this)">
 	  SWID</a>
 	<a id="dlswid" class="dldr" title="Download SWID">
 	  &darr;
 	</a>
-	| 
 	<a href="javascript:void(0)" onclick="showme('#cyclonedxcontent',0,'.scontent',this)">
 	  CycloneDX</a>
 	<a id="dlcyclonedx" class="dldr" title="Download CycleDX">
 	  &darr;
 	</a>
-	| 
+	<a href="javascript:void(0)" class="csaftab d-none"
+	onclick="showme('#csafcontent',0,'.scontent',this)"
+		   id="csafshow">
+	  CSAF (VeX)
+	</a>
+	<a id="dlcsaf" class="csaftab dldr d-none" href="javascript:void(0)"
+	   title="Download CSAF document">
+	  &darr;
+	</a>	
 	<a href="javascript:void(0)" onclick="showme('#graph',1,'.scontent',this)"
 	   id="graphshow">
 	  Graph
 	</a>
-	<a id="dlsvg" class="dldr" onclick="make_png(false,null)" href="javascript:void(0)"
+	<a id="dlsvg" class="dldr" onclick="make_png(false,null)"
+	   href="javascript:void(0)"
 	   title="Download SVG Graph">
 	  &darr;
 	</a>
-	| 
 	<a id="dlzip" class="dldr" onclick="download_zip()" href="javascript:void(0)"
 	   title="Download Zipped SBOM package">
 	  &#8484; &darr; &nbsp;
 	</a>
-	
       </h4>
       <div id="spdxcontent" class="scontent">
+	<p style="margin:0px; margin-top:-20px;">
+	  <a href="javascript:void(0)" class="childtab cactive" 
+	  data-phref="dlspdx" data-ptype="spdx" 
+          onclick="showme('#spdxtag',0,'.dlContent',this)">
+	    TAG
+	  </a>   &nbsp; 
+	  <a href="javascript:void(0)" class="childtab" data-phref="dlspdx"
+	     data-ptype="json" 
+             onclick="showme('#spdxjson',0,'.dlContent',this)">
+	    JSON
+	  </a>
+	</p>
+	<pre id="spdxtag" class="dlContent"></pre>
+	<textarea id="spdxjson" class="dlContent" style="display:none">
+	</textarea>		 
       </div>
       <div id="swidcontent" class="scontent">
 	<textarea id="swidtext" class="dlContent">
@@ -105,6 +125,10 @@
 	<textarea id="cyclonedxJSON" class="dlContent" style="display:none">
 	</textarea>	
       </div>
+      <div id="csafcontent" class="scontent">
+	<textarea id="csafJSON" class="dlContent">
+	</textarea>
+      </div>
       <div id="graph" class="scontent">
 	<input type="hidden" id="pngblob">
       </div>     
@@ -117,14 +141,28 @@
 	  <thead>
 	    <tr>
 	      <th colspan="2" class="text-center parent-header">
+	      <div>
 		<img src="cert_tweet_logo.jpg" class="cert-tweet" alt="CERT Logo"
 		     onclick="wtoggle('blackbody')">
-		SwiftBOM - SBOM Generator for PoC and Demos &nbsp;
+		SwiftBOM <span id="version"></span>
+		- SBOM Generator for PoC and Demos &nbsp;
 		<a href="javascript:void(0)" onclick="do_example()">Load Example</a>
-		| &nbsp; 
-		<a href="javascript:void(0)" onclick="$('#spdxload').click()"
-		   alt="Import SPDX or Excel file using the base template">
-		  Import SPDX/Excel</a>
+		| &nbsp;
+		<div class="dropdown dfdrop" style="width: auto;display: inline;">
+		  <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		    Import
+		  </button>
+		  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" x-placement="bottom-start" style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 42.5px, 0px);">
+		    <a class="dropdown-item" href="javascript:void(0)"
+		       onclick="$('#spdxload').click()">SPDX (Tag)</a>
+		    <a class="dropdown-item" href="javascript:void(0)"
+		       onclick="$('#spdxload').click()">Excel</a>
+		    <a class="dropdown-item" href="javascript:void(0)"
+		       onclick="pkg_ask('npm')">NPM Package</a>
+		    <a class="dropdown-item" href="javascript:void(0)"
+		       onclick="pkg_ask('pip')">PIP Package</a>
+		  </div>
+		</div>
 		<br />
 		<div class="tright">
 		  <button class="btn btn-danger" onclick="clearall()">
@@ -137,11 +175,11 @@
 			    SPDXID of SPDXRef-DOCUMENT)">
 		    i
 		  </a>
-		  <a href="https://github.com/CERTCC/SBOM/tree/master/sbom-demo" class="asvg"
-		     title="Code Git Repo">
+		  <a href="https://github.com/CERTCC/SBOM/tree/master/SwiftBOM"
+		  class="asvg" title="Code Git Repo">
 		    <svg height="32" class="octicon octicon-mark-github text-white" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
 		  </a>
-		</div>
+		</div> </div>
 	      </th>
 	  </tr></thead>
 	  <tbody>
@@ -185,6 +223,7 @@
 		<select name="CreatorType" class="form-control mauto">
 		  <option>Organization</option>
 		  <option>Person</option>
+		  <option>Tool</option>
 		</select>
 		<input class="form-control mauto" type="text" name="Creator" 
 		       placeholder="ACME-Hospital-Division()">
@@ -193,14 +232,14 @@
 	    <tr class="thead">
 	      <td>Created</td>
 	      <td>
-		<input class="form-control" type="datetime-local" name="Created">
+		<input class="form-control" id="Created" type="datetime-local" name="Created">
 
 	      </td>
 	    </tr>
 	    <tr class="thead">
 	      <td>Creator Comment</td>
 	      <td>
-		<textarea class="form-control not_required" name="CreatorComment"
+		<textarea class="form-control not_required" name="CreatorComment" id="CreatorComment"
 			  placeholder="Draft ACME INFUSION PoC II SBOM document in SPDX format. Unofficial content for demonstration purposes only"
 			  data-required="0"></textarea>
 	      </td>
@@ -233,6 +272,8 @@
 		    <tr>
 		      <td>Component Name
 			<br />
+			<input type="hidden" name="BomRef"
+			class="BomRef not_required">
 			<input type="checkbox" class="check_cpe not_required"
 			       onchange="use_cpe(this)"/>
 			<a class="text-small" href="javascript:void(0)"
@@ -257,7 +298,7 @@
 		    <tr>
 		      <td>Version</td>
 		      <td>
-			<input class="form-control PackageVersion noCPE" type="text"
+			<input class="form-control PackageVersion noCPE not_required" type="text"
 			       placeholder="1.0" name="PackageVersion">
 			<div class="PackageVersionCPE CPE d-none"></div>
 		      </td>
@@ -265,9 +306,10 @@
 		    <tr>
 		      <td>Supplier Name</td>
 		      <td>
-			<select name="SupplierType" class="form-control mauto SupplierType">
+			<select name="SupplierType" class="form-control mauto SupplierType not_required">
 			  <option>Organization</option>
 			  <option>Person</option>
+			  <option>Tool</option>			  
 			</select>
 			<input class="form-control mauto SupplierName noCPE" type="text"
 			       placeholder="ACME" name="SupplierName">
@@ -289,7 +331,7 @@
 		      <td>
 			<input class="form-control not_required spdx-lite-field" type="text"
 			       name="PackageFileName" data-required="0"
-			       value=""  placeholder="Filename.extension">			
+			       value=""  placeholder="Filename.extension">
 		      </td>
 		    </tr>
 		    <tr class="spdx-lite d-none">
@@ -304,45 +346,57 @@
 		    <tr class="spdx-lite d-none">
 		      <td>Files Analyzed</td>
 		      <td>
-			<select name="FilesAnalyzed" class="form-control"
+			<select name="FilesAnalyzed" class="form-control FilesAnalyzed"
 				onchange="checksummer(this)">
 			  <option selected>false</option>
 			  <option>true</option>
 			</select>
 		      </td>
 		    </tr>
-		    <tr>
+		    <tr class="ComponentChecksumRow">
 		      <td>Component Checksum</td>
 		      <td>
-		<select name="ChecksumType"
-			onchange="checksumtype(this)"
-			class="not_required form-control scool">
-		  <option value="">None</option>
-		  <option>File</option>
-		  <option>Package</option>
-		</select>
-		<select name="FileChecksumAlgorithm"
-			onchange="algvalue(this)"
-			class="form-control mauto not_required FileChecksumAlgorithm d-none">
-		  <option value="">Select</option>
-		  <option>SHA1</option>
-		  <option>SHA224</option>
-		  <option>SHA256</option>
-		  <option>SHA384</option>
-		  <option>SHA512</option>
-		  <option>MD2</option>
-		  <option>MD4</option>
-		  <option>MD5</option>
-		  <option>MD6</option>
-		</select>
-		&nbsp; 
-		<input type="text" name="FileChecksumv"
-			       onchange="checksumvalid(this)"
-			       class="form-control not_required mauto FileChecksumv d-none"/>
-			<input type="hidden" name="FileChecksum"
-			       class="not_required spdx-lite-field mauto FileChecksum"/>			       
+			<div style="padding-bottom: 12px">
+			  <select name="ChecksumType" placeholder="Package"
+				  onchange="checksumtype(this)"
+				  class="not_required mauto form-control scool ChecksumType">
+			    <option value="">Type</option>
+			    <option>File</option>
+			    <option>Package</option>
+			  </select> &nbsp;
+			  <input type="text" class="form-control mauto not_required FileName spdx-lite-field d-none ChecksumRelated" name="FileName" size="44" placeholder="Filename.extension">
+			  <input type="text" class="form-control mauto not_required PackageFileName spdx-lite-field d-none ChecksumRelated" name="PackageFileName" size="44" placeholder="Packagename.extension" sample="INFUSION.iso">
+			</div>
+			<div>
+			  <select name="ChecksumAlgorithm"
+				  onchange="algvalue(this)"
+				  class="form-control mauto not_required ChecksumAlgorithm d-none ChecksumRelated">
+			    <option value="">Algorithm</option>
+			    <option>SHA1</option>
+			    <option>SHA224</option>
+			    <option>SHA256</option>
+			    <option>SHA384</option>
+			    <option>SHA512</option>
+			    <option>MD2</option>
+			    <option>MD4</option>
+			    <option>MD5</option>
+			    <option>MD6</option>
+			  </select>
+			  &nbsp; 
+			  <input type="text" name="Checksumv" size="32"
+				 onchange="checksumvalid(this)"
+				 class="form-control not_required mauto Checksumv d-none ChecksumRelated"/>
+			  <input type="hidden" name="FileChecksum"
+				 class="not_required spdx-lite-field mauto FileChecksum ChecksumRelated"/>
+			  <input type="hidden" name="PackageChecksum"
+				 class="not_required spdx-lite-field mauto PackageChecksum ChecksumRelated"/>
+			   <input type="hidden" name="AddPackageComment"
+			   class="AddPackageComment not_required" value=" "/>
+				 
+			</div>
 		      </td>
 		    </tr>
+		    
 		    <tr class="spdx-lite d-none">
 		      <td>Package Home Page</td>
 		      <td>
@@ -431,12 +485,14 @@
 	    </tr>
 	    <tr class="tail">
 	      <td colspan="2">
-		<button class="btn btn-success" onclick="add_cmp()"
+		<button class="btn btn-success" onclick="add_cmp()" 
 			data-toggle="tooltip" data-placement="top"
 			title="Add an included software component">
 		  + Add Component
 		</button>
 		&nbsp;
+		<button class="btn btn-danger d-none remove-all" 
+		onclick="removeall_cmps()"> - Remove All</button>
 		<div class="float-right">
 		  <button class="btn btn-warning"
 			  data-toggle="tooltip" data-placement="top"
@@ -472,6 +528,8 @@
 	    <tr>
 	      <td>Parent Component</td>
 	      <td>
+		<input type="hidden" name="BomRef"
+		class="BomRef not_required">
 		<select name="ParentComponent" class="form-control ParentComponent">
 		  <option value="PrimaryComponent">PrimaryComponent</option>
 		</select>
@@ -539,6 +597,7 @@
 		<select name="SupplierType" class="form-control mauto SupplierType">
 		  <option>Organization</option>
 		  <option>Person</option>
+		  <option>Tool</option>		  
 		</select>
 		<div class="SupplierNameCPE CPE d-none"></div>
 		<input class="form-control mauto SupplierName noCPE"
@@ -573,49 +632,59 @@
 		       placeholder="https://github.com/MySoftware/Mypackage.exe">
 	      </td>
 	    </tr>
-		    <tr class="spdx-lite d-none">
-		      <td>Files Analyzed</td>
-		      <td>
-			<select name="FilesAnalyzed" class="form-control"
-				onchange="checksummer(this)">
-			  <option selected>false</option>
-			  <option>true</option>
-			</select>
-		      </td>
-		    </tr>	    
-	    <tr>
-	      <td>Component Checksum</td>
+	    <tr class="spdx-lite d-none">
+	      <td>Files Analyzed</td>
 	      <td>
-		
-		<select name="ChecksumType"
-			onchange="checksumtype(this)"
-			class="not_required form-control scool">
-		  <option value="">None</option>
-		  <option>File</option>
-		  <option>Package</option>
+		<select name="FilesAnalyzed" class="form-control FilesAnalyzed"
+			onchange="checksummer(this)">
+		  <option selected>false</option>
+		  <option>true</option>
 		</select>
-		<select name="FileChecksumAlgorithm"
-			onchange="algvalue(this)"
-			class="form-control mauto not_required FileChecksumAlgorithm d-none">
-		  <option value="">Select</option>
-		  <option>SHA1</option>
-		  <option>SHA224</option>
-		  <option>SHA256</option>
-		  <option>SHA384</option>
-		  <option>SHA512</option>
-		  <option>MD2</option>
-		  <option>MD4</option>
-		  <option>MD5</option>
-		  <option>MD6</option>
-		</select>
-		&nbsp; 
-		<input type="text" name="FileChecksumv"
-		       onchange="checksumvalid(this)"
-		       class="form-control not_required mauto FileChecksumv d-none"/>
-		<input type="hidden" name="FileChecksum"
-		       class="not_required spdx-lite-field mauto FileChecksum"/>			       
 	      </td>
-	    </tr>	    
+	    </tr>
+		    <tr class="ComponentChecksumRow">
+		      <td>Component Checksum</td>
+		      <td>
+			<div style="padding-bottom: 12px">
+			  <select name="ChecksumType"
+				  onchange="checksumtype(this)"
+				  class="not_required mauto form-control scool ChecksumType">
+			    <option value="">Type</option>
+			    <option>File</option>
+			    <option>Package</option>
+			  </select> &nbsp;
+			  <input type="text" class="form-control mauto not_required FileName spdx-lite-field d-none ChecksumRelated" name="FileName" size="44" placeholder="File name">
+			  <input type="text" class="form-control mauto not_required PackageFileName spdx-lite-field d-none ChecksumRelated" name="PackageFileName" size="44" placeholder="Package name" sample="Windows7-Embedded.pkg">
+			</div>
+			<div>
+			  <select name="ChecksumAlgorithm"
+				  onchange="algvalue(this)"
+				  class="form-control mauto not_required ChecksumAlgorithm d-none ChecksumRelated">
+			    <option value="">Algorithm</option>
+			    <option>SHA1</option>
+			    <option>SHA224</option>
+			    <option>SHA256</option>
+			    <option>SHA384</option>
+			    <option>SHA512</option>
+			    <option>MD2</option>
+			    <option>MD4</option>
+			    <option>MD5</option>
+			    <option>MD6</option>
+			  </select>
+			  &nbsp; 
+			  <input type="text" name="Checksumv" size="32"
+				 onchange="checksumvalid(this)"
+				 class="form-control not_required mauto Checksumv d-none ChecksumRelated"/>
+			  <input type="hidden" name="FileChecksum"
+				 class="not_required spdx-lite-field mauto FileChecksum ChecksumRelated"/>
+			  <input type="hidden" name="PackageChecksum"
+				 class="not_required spdx-lite-field mauto PackageChecksum ChecksumRelated"/>
+			   <input type="hidden" name="AddPackageComment"
+			   class="AddPackageComment not_required" value=" "/>
+			</div>
+		      </td>
+		    </tr>
+	    
 	    <tr class="spdx-lite d-none">
 	      <td>Package Home Page</td>
 	      <td>
@@ -700,6 +769,20 @@
 	    </tr>
 	    
       </table>
+      <table class="d-none">
+      <tbody class="CPETempalte">
+      <tr class="CPEVuls text-warning">
+      <td colspan="2">
+      <input type="checkbox" alt="Include" onclick="add_cve(this)" title="Include" class="not_required"> <a class="btn btn-outline-danger cpecvebtn" onclick="view_cve(this)"></a> for CPE version: <span class="cpeversion"></span>, edition: <span class="cpe_edition"></span>, with CVSS(v2 &amp; v3) score: <span class="cvss_v2">N/A</span> &amp; <span class="cvss_v3">N/A</span> </td></tr>
+      </tbody>
+      </table>
+      <table class="d-none">
+      <tbody id="CVETemplate">
+      <tr class="CVEVuls text-warning">
+      <td colspan="2">
+      <input type="checkbox" alt="Include" onclick="add_cve(this)" title="Include" class="not_required"> <a class="btn btn-outline-danger cpecvebtn" onclick="view_cve(this)"></a> for CPE version: <span class="cpeversion"></span>, edition: <span class="cpe_edition"></span>, with CVSS(v2 &amp; v3) score: <span class="cvss_v2">N/A</span> &amp; <span class="cvss_v3">N/A</span> </td></tr>
+      </tbody>
+      </table>      
     </div>
     <div id="spdx" class="spdx">
       <div class="head">## Document Header
@@ -717,7 +800,7 @@
 	## 2.4 Primary Component (described by the SBOM)
 	PackageName: $PackageName
 	SPDXID: SPDXRef-$EscPackageName
-	PackageComment: &lt;text&gt;PURL is pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
+	PackageComment: &lt;text&gt;PURL is pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion $AddPackageComment&lt;/text&gt;
 	ExternalRef: PACKAGE-MANAGER purl pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion
 	PackageVersion: $PackageVersion
 	PackageSupplier: $SupplierType: $SupplierName
@@ -734,7 +817,7 @@
 	##
 	PackageName: $PackageName
 	SPDXID: SPDXRef-$EscPackageName
-	PackageComment:  &lt;text&gt;PURL is pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion&lt;/text&gt;
+	PackageComment:  &lt;text&gt;PURL is pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion $AddPackageComment&lt;/text&gt;
 	ExternalRef: PACKAGE-MANAGER purl pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion	
 	PackageVersion: $PackageVersion
 	PackageSupplier: $SupplierType: $SupplierName
@@ -776,7 +859,7 @@
               <email></email>
 	    </author>
 	  </authors>
-	  <component type="device" bom-ref="$BomRef">
+	  <component type="application" bom-ref="$BomRef">
 	    <name>$PackageName</name>
 	    <version>$PackageVersion</version>
 	    <purl>pkg:supplier/$UrlSupplierName/$UrlPackageName@$PackageVersion</purl>
@@ -807,6 +890,15 @@
       </textarea>
       <!-- Dependencies currently hard coded in populate_dependencies routine-->
       <textarea class="cyclonedxdeps jhide">
+      </textarea>
+      <!-- vulnerabilities if any can be represented in CycloneDX only -->
+      <textarea class="cyclonedxvuls jhide">
+	    <v:vulnerability bom-ref="$BomRef">
+	          <v:id>$CVE</v:id>	
+		     <v:source name="NVD">
+		     <v:url>https://nvd.nist.gov/vuln/detail/$CVE</v:url>
+ 	          </v:source>
+	    </v:vulnerability>
       </textarea>
     </div>
     <div id="mpopup"
@@ -928,7 +1020,7 @@
 	</div>
       </div>
     </div>    
-    <script src="script.js?v=1623706586"></script>
+    <script src="script.js?v=1627694636"></script>
     <input type="file" onchange="readFile(this,false)" style="opacity:0.01" id="spdxload">
     <canvas id="canvas" style="display:none"></canvas>
   </body>

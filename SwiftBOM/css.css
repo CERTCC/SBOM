@@ -1,4 +1,38 @@
-/* SBOM-Demo css.css version 2.6.0 */
+/* SBOM-Demo css.css version 2.6.3 */
+.dfdrop {
+    width: auto;
+    display: inline;
+}
+.blackbody .dfdrop > .btn-secondary.dropdown-toggle {
+    display: inline-block;
+    background-color: #222;
+    font-weight: bold;
+    border: 0px;
+    color: #007bff;
+}
+.blackbody .dfdrop .dropdown-menu ,
+.blackbody .dfdrop .dropdown-item {
+    background-color: #222;
+}
+.blackbody .dfdrop .dropdown-item:hover {
+    background-color: #333;
+    color: white;
+}
+.dfdrop .dropdown-menu,
+.dfdrop .dropdown-item {
+    color: #007bff;
+}
+.dfdrop .dropdown-item:hover {
+    background-color: #f1f1f1;
+    color: #222;
+}
+.dfdrop > .btn-secondary.dropdown-toggle {
+    background: transparent;
+    display: inline-block;
+    font-weight: bold;    
+    color: #007bff;
+    border: 0px;    
+}
 .table th {
     border-top: none;
 }
@@ -63,6 +97,9 @@ input:disabled {
 .not_required {
     border: 2px dashed lightgrey;
 }
+.fake-required {
+    border: 1px solid #ced4da;
+}
 .circletext {
     color: black;
     border: 2px solid black;
@@ -90,6 +127,14 @@ a.circletext.spdx-lite {
 }
 .swal-title:first-child {
     margin-top: 2px;
+}
+.swal-footer p {
+    color: black;
+    font-size: 12px;
+    display: block;
+    margin-bottom: 0px;
+    width: 100%;
+    text-align: center;
 }
 .cert-tweet {
     width: 48px;
@@ -142,6 +187,7 @@ a.circletext.spdx-lite {
 }
 .blackbody .dldr {
     color: #dddddd;
+    border-right: 3px solid white;
 }
 .blackbody .modal-content {
     background-color: #222;
@@ -152,6 +198,8 @@ a.circletext.spdx-lite {
 }
 .dldr {
     color:#222;
+    border-right: 3px solid black;
+    margin-right: 8px;
 }
 .vul_template {
     border: 1px solid grey;
