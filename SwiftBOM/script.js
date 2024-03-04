@@ -1,5 +1,5 @@
 /* SBOM-Demo script.js version 5.2.4 ability to export CyconeDX as JSON and Graph as PNG  */
-const _version = '5.2.4'
+const _version = '5.2.7'
 $('#version').html("("+_version+")")
 $('#Created').val((new Date()).toISOString().replace("Z",""))
 /* Internal JSON representation */
@@ -124,7 +124,13 @@ var cyclonedxhashj = {"hashes": [{
    CSAF look like 
 {"document": csaf_doc, 
  "vulnerabilities": [csaf_vuls],
- "product_tree": { "branches": [csaf_products] }
+ "product_tree": { "branches": [csaf_products] },
+ "remediations" : [
+ { "category": "vendor_fix",
+   "product_ids":  ["CSAFPID-$BomRef"],
+   "description": "Please update to the latest version provided by Vendor"
+}
+]
 }
 */
 var csaf_doc = {
@@ -140,6 +146,10 @@ var csaf_doc = {
 	    "category": "legal_disclaimer",
 	    "text": "THIS DOCUMENT IS PROVIDED ON AN \"AS IS\" BASIS AND DOES NOT IMPLY ANY KIND OF GUARANTEE OR WARRANTY, INCLUDING THE WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE. YOUR USE OF THE INFORMATION ON THE DOCUMENT OR MATERIALS LINKED FROM THE DOCUMENT IS AT YOUR OWN RISK.",
 	    "title": "Legal Disclaimer"
+	},
+	{
+	    "category": "other",
+	    "text": "This document is generated for demo purposes only. PURL identifiers in this document do not comply to PURL specifications."
 	}
     ],
     "publisher": {
@@ -179,37 +189,60 @@ var csaf_doc = {
 }
 
 var csaf_vuls = { 
-    "title": "$description",
     "cve": "$cve",
+    "notes": [
+	{
+	    "category": "summary",
+	    "text": "$description"
+	}
+    ],
     "product_status": {
 	"known_affected": ["CSAFPID-$BomRef"]
-    }
+    },
+    "remediations" : [
+	{
+	    "category": "vendor_fix",
+	    "product_ids":  ["CSAFPID-$BomRef"],
+	    "details": "This component has been identified as vulnerable. "+
+		"Please update to the latest version of the software "+
+		"provided by the Vendor."  
+	}
+    ]
 }
-var csaf_products = { "category": "vendor",
-		       "name": "$SupplierName",
-		       "branches": [
-			   {
-			       "category": "product_name",
-			       "name": "$PackageName",
-			       "branches": [
-				   {
-				       "category": "product_version",
-				       "name": "$PackageVersion",
-				       "product": {
-					   "product_id": "CSAFPID-$BomRef",
-					   "name": "$SupplierName $PackageName $PackageVersion"
-				       }
-				   }
-			       ]
-			   }
-		       ]
+var csaf_products = {
+    "category": "vendor",
+    "name": "$SupplierName",
+    "branches": [
+	{
+	    "category": "product_name",
+			      "name": "$PackageName",
+	    "branches": [
+		{
+		    "category": "product_version",
+		    "name": "$PackageVersion",
+		    "product": {
+			"product_id": "CSAFPID-$BomRef",
+			"name": "$SupplierName $PackageName $PackageVersion",
+			"product_identification_helper": {
+			    "purl":
+			    "pkg:supplier/$UrlSupplierName/"+
+				"$UrlPackageName@$PackageVersion"
+			}
+					   
 		    }
+		}
+	    ]
+	}
+    ]
+}
 var diagonal,tree,svg,duration,root
 var treeData = []
 var vul_data = []
 var cve_data = []
 var alltreeData = []
 var cpe_data = []
+/* A global CSAF report copied from csaf_doc */
+var csaf = {}
 /* Load CPE data async */
 $.get("cpe_lookup/vendors_unique.txt").done(function(x) {
     cpe_data = x.replace(/\"/g,'').split('\n')
@@ -783,6 +816,22 @@ function do_example() {
     $('input[type="datetime-local"]').val(new Date().toISOString().replace("Z",""))
     $('.AddPackageComment').val(" ")
     generate_spdx()
+    /* Fake a fixed version of ACME */
+    var csaf_fix = {
+	"category": "product_version",
+	"name": "1.1",
+	"product": {
+	    "product_id": "CSAFPID-FIXED-0001",
+	    "name": "ACME INFUSION 1.1",
+	    "product_identification_helper": {
+		"purl": "pkg:supplier/ACME/INFUSION@1.1"
+	    }
+	}
+    }
+    $('.csaftab').append($('<div>').addClass("csaf_fix d-none"))
+    $('.csaf_fix').html(JSON.stringify(csaf_fix))
+    $('.csaf_fix').attr("data-csafpid","CSAFPID-FIXED-0001")
+			
     setTimeout(function() {
 	$.getJSON("CVE-2019-2697.json")
 	    .always(function(data)
@@ -1844,6 +1893,16 @@ function add_heatmap(cvss_score) {
 	$('#heatbar').append(x)
     }
 }
+function csaf_products_map(x,wtable) {
+    var rval = wtable.find("."+x).val();
+    if(!rval) {
+	/* Uri escape Url specific 
+	   elements like UrlPackageName*/
+	x = x.replace("Url","");
+	rval = encodeURIComponent(wtable.find("."+x).val());
+    }
+    return rval;
+}
 function simulate_vuls() {
     $('.invalid-feedback').remove();
     var pratio = parseFloat($('#pratio').val());
@@ -1867,13 +1926,13 @@ function simulate_vuls() {
     vul_data = [];
     var cdxvuls = "\n<v:vulnerabilities>\n";
     
-    var csaf = {"document":
-		JSON.parse(JSON.stringify(csaf_doc)
-			   .replace(/\$([A-Za-z0-9]+)/gi,function(_,x) {
-			       return $("#"+x).val()
-			   }))};
-    csaf["vulnerabilities"] = [];
+    csaf = {"document":
+	    JSON.parse(JSON.stringify(csaf_doc)
+		       .replace(/\$([A-Za-z0-9]+)/gi,function(_,x) {
+			   return $("#"+x).val()
+		       }))};
     csaf["product_tree"] = { "branches": [] };
+    csaf["vulnerabilities"] = [];
     for(var j=0; j<vul_rows.length; j++) {
 	var inputs = $(vul_rows[j]).find(":input").not("button");
 	for (var i=0; i< inputs.length; i++) {
@@ -1945,23 +2004,24 @@ function simulate_vuls() {
 		}		    
 	    }
 	}
-	csaf.vulnerabilities.push(JSON.parse(JSON
-					     .stringify(csaf_vuls)
-					     .replace(/\$([A-Za-z0-9]+)/gi,
-						      (_,x) => csaf_cve[x])));
 	csaf.product_tree
 	    .branches
 	    .push(JSON.parse(JSON
 			     .stringify(csaf_products)
 			     .replace(/\$([A-Za-z0-9]+)/gi,
-				      (_,x) => wtable.find("."+x).val())));
+				      function(_,x) {
+					  return csaf_products_map(x,wtable);
+				      })));
 	$('circle[sid="'+vid+'"]')
 	    .css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
 	    .data(vul_d).addClass('has_vul');
-	setTimeout(function() {
-	    add_color_child(vid,cvss_score*pratio,vul_d)}, 400);
-	setTimeout( function () {
-	    add_color_parent(vid,cvss_score*pratio,vul_d)}, 500);
+	csaf.vulnerabilities.push(JSON.parse(JSON.stringify(csaf_vuls)
+					     .replace(/\$([A-Za-z0-9]+)/gi,
+						      (_,x) => csaf_cve[x])));
+	
+	add_color_child(vid,cvss_score*pratio,vul_d,cve)
+	add_color_parent(vid,cvss_score*pratio,vul_d,cve)
+	
 	if($('.'+cve).length < 1) {
 	    /* Add CVE information to the table 
 	       cve_id, cvss_score, vul_part
@@ -1970,6 +2030,21 @@ function simulate_vuls() {
 	    var frow = '<tr class="CVEVuls text-warning '+cve+'"><td colspan="2"><div><input type="checkbox" checked alt="Include" onclick="add_cve(this)" title="Include" class="not_required"> <a class="btn btn-outline-danger" onclick="view_cve(this)">'+cve+'</a> was added for <b>'+pkgName+'</b> with CVSS(v3) score: <b>'+cvss_score+'</b></div></td></tr>';
 	    wtable.append(frow);
 	    $('.'+cve).data("cve",{cve_id: cve, cvss_v3_score: cvss_score,vul_part:graphid});
+	}
+    }
+    if($('.csaf_fix').html()) {
+	/* Find product id to fix */
+	var cspid = "CSAFPID-"+$('#PrimaryComponent').data('bomref')
+	var csaf_id = csaf.product_tree.branches.findIndex(
+	    function (x) {
+		return x.branches[0].branches[0].product.product_id == cspid;
+	    })
+	if(csaf_id > -1) {
+	    var csaf_fix = JSON.parse($('.csaf_fix').html());
+	    var csaf_fix_pid = $('.csaf_fix').data('csafpid');
+	    csaf.product_tree.branches[csaf_id].branches[0].branches
+		.push(csaf_fix);
+	    csaf.vulnerabilities[0].product_status["fixed"] = [csaf_fix_pid];
 	}
     }
     $('#csafJSON').val(JSON.stringify(csaf,null,2));
@@ -1996,7 +2071,7 @@ function simulate_vuls() {
     $('.csaftab').removeClass('d-none');
 }
 
-function add_color_child(vid,cvss_score,vul_d) {
+function add_color_child(vid,cvss_score,vul_d,cve) {
     var vcid = alltreeData.findIndex(x => x.id == vid)
     if(vcid < 0) {
 	console.log("Some mismatch between vulnerability and latest data")
@@ -2015,10 +2090,36 @@ function add_color_child(vid,cvss_score,vul_d) {
 	}
 	cel.css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
 	    .data(vul_d).addClass('has_vul')
+	var wxtable = $('[data-graphid="'+tvcid+'"]');
+	/* Add all products impacted  */
+	csaf.product_tree
+	    .branches
+	    .push(JSON.parse(JSON.stringify(csaf_products)
+			     .replace(/\$([A-Za-z0-9]+)/gi,
+				      function(_,x) {
+					  return csaf_products_map(x,wxtable);
+				      })));
+	var csafpid = "CSAFPID-"+wxtable.data('bomref')	
+	csaf.vulnerabilities.forEach(function(x) {
+	    if(("cve" in x) && (x.cve == cve)) {
+		try {
+		    //x.remediations[0].product_ids.push(csafpid)
+		    var child_fix = JSON.parse(
+			JSON.stringify(csaf_vuls.remediations[0]));
+		    child_fix['product_ids'][0] = csafpid;
+		    child_fix['details'] = "This product is affected because of its dependence on a vulnerable component and not directly due to a vulnerability. This was fixed by updating the dependencies in "+alltreeData[vcid].name
+		    x.remediations.push(child_fix);
+		    x.scores[0].products.push(csafpid)		    
+		    x.product_status.known_affected.push(csafpid)
+		}catch(err) {
+		    console.log(err)
+		}
+	    }
+	});
 	add_color_child(tvcid,cvss_score,vul_d)
     }
 }
-function add_color_parent(vid,cvss_score,vul_d) {
+function add_color_parent(vid,cvss_score,vul_d,cve) {
     var vcid = alltreeData.findIndex(x => x.id == vid) 
     if(vcid < 0) {
 	console.log("Some mismatch between vulnerability and latest data")
@@ -2043,6 +2144,32 @@ function add_color_parent(vid,cvss_score,vul_d) {
     }    
     pel.css({fill:'rgb('+cvss_tocolor(cvss_score)+')'})
 	.data(vul_d).addClass('has_vul')
+    var wxtable = $('[data-graphid="'+tvcid+'"]');
+    /* Add all oither products impacted */
+    csaf.product_tree
+	.branches
+	.push(JSON.parse(JSON
+			 .stringify(csaf_products)
+			 .replace(/\$([A-Za-z0-9]+)/gi,
+				  function(_,x) {
+				      return csaf_products_map(x,wxtable);
+				  })));
+    var csafpid = "CSAFPID-"+wxtable.data('bomref')	
+    csaf.vulnerabilities.forEach(function(x) {
+	if(("cve" in x) && (x.cve == cve)) {
+	    try {
+		var parent_fix = JSON.parse(
+		    JSON.stringify(csaf_vuls.remediations[0]));
+		parent_fix['product_ids'][0] = csafpid;
+		parent_fix['details'] = "This product is affected because of its inheritance/bundling on a vulnerable component and not directly due to a vulnerability. This was fixed by updating the dependencies in "+alltreeData[vcid].name
+		x.remediations.push(parent_fix);
+		x.scores[0].products.push(csafpid);
+		x.product_status.known_affected.push(csafpid);
+	    }catch(err) {
+		console.log(err)
+	    }
+	}
+    });
     setTimeout( function () {
 	add_color_parent(tvcid,cvss_score*pratio,vul_d)}, 400)
 }
